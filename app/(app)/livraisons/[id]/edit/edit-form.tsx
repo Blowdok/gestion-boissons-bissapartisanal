@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,11 @@ export function EditLivraisonForm({
   );
   const fe = state?.fieldErrors ?? {};
 
+  // Inputs controles : evite le warning Base UI sur les defaultValue
+  const [datePrevue, setDatePrevue] = useState<string>(initial.date_prevue);
+  const [livreurId, setLivreurId] = useState<string>(initial.livreur_id ?? "");
+  const [notes, setNotes] = useState<string>(initial.notes ?? "");
+
   useEffect(() => {
     if (!state) return;
     if (!state.error && !state.fieldErrors) {
@@ -56,7 +61,8 @@ export function EditLivraisonForm({
             name="date_prevue"
             type="date"
             required
-            defaultValue={initial.date_prevue}
+            value={datePrevue}
+            onChange={(e) => setDatePrevue(e.target.value)}
             className="mt-2"
             disabled={pending}
           />
@@ -69,7 +75,8 @@ export function EditLivraisonForm({
           <Label htmlFor="livreur_id">Livreur</Label>
           <Select
             name="livreur_id"
-            defaultValue={initial.livreur_id ?? ""}
+            value={livreurId}
+            onValueChange={(v) => setLivreurId(v ?? "")}
             disabled={pending}
           >
             <SelectTrigger className="mt-2">
@@ -92,7 +99,8 @@ export function EditLivraisonForm({
             id="notes"
             name="notes"
             rows={3}
-            defaultValue={initial.notes ?? ""}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
             className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             disabled={pending}
           />
