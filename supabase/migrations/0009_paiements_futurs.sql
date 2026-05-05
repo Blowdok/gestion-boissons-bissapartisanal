@@ -11,7 +11,11 @@
 --    'impaye'  si encaisse = 0
 -- =============================================================================
 
-create or replace view public.factures_avec_solde
+-- DROP + CREATE car CREATE OR REPLACE refuse de renommer une colonne
+-- existante (montant_paye -> montant_encaisse + ajout montant_a_encaisser)
+drop view if exists public.factures_avec_solde;
+
+create view public.factures_avec_solde
 with (security_invoker = on)
 as
 select
