@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Pencil } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { requireRole } from "@/lib/auth/guards";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +50,14 @@ export default async function ClientDetailPage({
 
   return (
     <div>
+      <Link
+        href="/clients"
+        className="mb-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" />
+        Retour aux clients
+      </Link>
+
       <PageHeader
         title={client.raison_sociale}
         description={
@@ -65,7 +73,11 @@ export default async function ClientDetailPage({
         actions={
           canWrite ? (
             <>
-              <ClientStatutToggle id={client.id} actif={client.actif} />
+              <ClientStatutToggle
+                id={client.id}
+                actif={client.actif}
+                raisonSociale={client.raison_sociale}
+              />
               <Link
                 href={`/clients/${id}/edit`}
                 className={buttonVariants({ variant: "outline" })}

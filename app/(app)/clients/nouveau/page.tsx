@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { requireRole } from "@/lib/auth/guards";
 import { PageHeader } from "@/components/layout/page-header";
 import { ClientForm } from "../client-form";
@@ -9,6 +11,14 @@ export default async function NouveauClientPage() {
   await requireRole("patron");
   return (
     <div>
+      <Link
+        href="/clients"
+        className="mb-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" />
+        Retour aux clients
+      </Link>
+
       <PageHeader
         title="Nouveau client"
         description="Créer une fiche client B2B."

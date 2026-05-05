@@ -1,9 +1,21 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Card,
   CardContent,
@@ -91,10 +103,13 @@ function TarifRow({
   produit: ProduitLigne;
   canWrite: boolean;
 }) {
+  const router = useRouter();
   const [value, setValue] = useState<string>(
     produit.prix_negocie != null ? produit.prix_negocie.toFixed(2) : "",
   );
   const [pending, start] = useTransition();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   const dirty =
     (produit.prix_negocie ?? null) !==
     (value === "" ? null : Number.parseFloat(value));
@@ -114,7 +129,10 @@ function TarifRow({
               const v = String(formData.get("prix_ht") ?? "").trim();
               if (v === "") return;
               formData.set("produit_id", produit.id);
-              start(() => upsertTarif(clientId, formData));
+              start(async () => {
+                await upsertTarif(clientId, formData);
+                router.refresh();
+              });
             }}
             className="flex items-center gap-2"
           >
@@ -142,15 +160,44 @@ function TarifRow({
       {canWrite ? (
         <TableCell className="text-right">
           {produit.prix_negocie != null ? (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              disabled={pending}
-              onClick={() => start(() => deleteTarif(clientId, produit.id))}
-              aria-label="Supprimer le tarif"
-            >
-              <Trash2 className="size-4 text-destructive" />
-            </Button>
+            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+              <AlertDialogTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled={pending}
+                    aria-label="Supprimer le tarif"
+                  >
+                    <Trash2 className="size-4 text-destructive" />
+                  </Button>
+                }
+              />
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Supprimer le tarif négocié ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Le prix par défaut ({formatEUR(produit.prix_defaut_ht)}) sera
+                    appliqué à ce client pour <strong>{produit.nom}</strong> à
+                    partir des prochaines livraisons.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      start(async () => {
+                        await deleteTarif(clientId, produit.id);
+                        setValue("");
+                        router.refresh();
+                      });
+                    }}
+                  >
+                    Supprimer
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           ) : null}
         </TableCell>
       ) : null}

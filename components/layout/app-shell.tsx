@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { ROLE_LABELS, type Role } from "@/lib/auth/roles";
 import { navItemsForRole } from "./nav-config";
 import { LogoutButton } from "./logout-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export type AppShellProps = {
   profile: { nom: string; role: Role };
@@ -123,6 +124,7 @@ function SidebarContent({
           <p className="text-xs text-muted-foreground">{ROLE_LABELS[profile.role]}</p>
           <p className="mt-1 truncate text-xs text-muted-foreground">{email}</p>
         </div>
+        <ThemeToggle />
         <LogoutButton />
       </div>
     </div>

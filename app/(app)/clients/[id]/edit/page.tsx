@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { requireRole } from "@/lib/auth/guards";
 import { PageHeader } from "@/components/layout/page-header";
 import { ClientForm } from "../../client-form";
@@ -26,6 +28,14 @@ export default async function EditClientPage({
 
   return (
     <div>
+      <Link
+        href={`/clients/${id}`}
+        className="mb-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" />
+        Retour à la fiche
+      </Link>
+
       <PageHeader
         title={`Modifier — ${client.raison_sociale}`}
         description="Modifie les informations de la fiche client."
