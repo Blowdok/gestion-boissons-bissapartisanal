@@ -1,14 +1,16 @@
--- Seed de développement (8 parfums + jeu d'essai client)
--- Exécuté automatiquement par `supabase db reset` après les migrations.
--- ⚠ Les profils sont créés via Supabase Auth lors de la phase 1, pas ici.
+-- Seed de developpement (8 parfums Bissapa + jeu d'essai)
+-- Source : https://bissapa.blowdok.fr/
+-- Execute automatiquement par `supabase db reset` apres les migrations.
+-- ⚠ Les profils sont crees via Supabase Auth lors de la phase 1, pas ici.
+-- ⚠ Les prix sont des placeholders : le Patron les ajustera dans le module admin.
 
 insert into public.parfums (nom, seuil_alerte, prix_defaut_ht, actif) values
-  ('Gingembre',     50, 2.50, true),
-  ('Hibiscus',      50, 2.50, true),
-  ('Citronnelle',   50, 2.50, true),
-  ('Combava',       50, 2.80, true),
-  ('Goyavier',      50, 2.80, true),
-  ('Ananas-Victoria', 50, 3.00, true),
-  ('Letchi',        50, 3.00, true),
-  ('Vanille',       50, 3.20, true)
+  ('Bissap Nature',      50, 2.50, true),
+  ('Bissap Menthe',      50, 2.50, true),
+  ('Bissap Framboise',   50, 2.50, true),
+  ('Bissap Litchi',      50, 2.50, true),
+  ('Bissap Melon',       50, 2.50, true),
+  ('Bissap Passion',     50, 2.50, true),
+  ('Ananas & Coco',      50, 2.50, true),
+  ('Ananas & Gingembre', 50, 2.50, true)
 on conflict do nothing;
