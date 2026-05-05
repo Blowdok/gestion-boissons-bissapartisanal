@@ -6,6 +6,7 @@
 -- Extensions ---------------------------------------------------------------
 create extension if not exists "pgcrypto";
 create extension if not exists "citext";
+create extension if not exists "pg_trgm";
 
 -- Type ENUM des roles ------------------------------------------------------
 do $$ begin
@@ -95,12 +96,8 @@ create table if not exists public.clients (
   updated_at            timestamptz not null default now()
 );
 
-create index if not exists clients_raison_sociale_idx on public.clients using gin (raison_sociale gin_trgm_ops);
--- Si pg_trgm pas encore installe, on retombe sur un index simple :
-do $$ begin
-  create extension if not exists "pg_trgm";
-exception when others then null; end $$;
-
+create index if not exists clients_raison_sociale_idx
+  on public.clients using gin (raison_sociale gin_trgm_ops);
 create index if not exists clients_ville_idx on public.clients(ville);
 create index if not exists clients_actif_idx on public.clients(actif);
 
