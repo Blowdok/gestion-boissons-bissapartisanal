@@ -1,9 +1,10 @@
--- Seed de developpement (8 parfums Bissapa + jeu d'essai)
--- Source : https://bissapa.blowdok.fr/
--- Execute automatiquement par `supabase db reset` apres les migrations.
--- ⚠ Les profils sont crees via Supabase Auth lors de la phase 1, pas ici.
--- ⚠ Les prix sont des placeholders : le Patron les ajustera dans le module admin.
+-- Seed de developpement
+-- - 8 parfums Bissapa (source : https://bissapa.blowdok.fr/)
+-- - 3 clients fictifs pour les tests
+-- Execute par `supabase db reset`. Les utilisateurs sont crees via
+-- scripts/seed-users.mjs (API admin Supabase, pas SQL).
 
+-- 8 parfums Bissapa --------------------------------------------------------
 insert into public.parfums (nom, seuil_alerte, prix_defaut_ht, actif) values
   ('Bissap Nature',      50, 2.50, true),
   ('Bissap Menthe',      50, 2.50, true),
@@ -13,4 +14,11 @@ insert into public.parfums (nom, seuil_alerte, prix_defaut_ht, actif) values
   ('Bissap Passion',     50, 2.50, true),
   ('Ananas & Coco',      50, 2.50, true),
   ('Ananas & Gingembre', 50, 2.50, true)
+on conflict (nom) do nothing;
+
+-- 3 clients fictifs --------------------------------------------------------
+insert into public.clients (raison_sociale, contact, email, telephone, adresse, ville, code_postal, conditions_paiement, actif) values
+  ('Le Marche Creole',     'Marie Hoarau',   'contact@marche-creole.re',  '0262 12 34 56', '12 rue de Paris',         'Saint-Denis',     '97400', '30 jours fin de mois', true),
+  ('Restaurant Ti Boucan', 'Jean Payet',     'jean@tiboucan.re',          '0262 78 90 12', 'Plage des Roches Noires', 'Saint-Gilles',    '97434', 'Comptant',             true),
+  ('Epicerie Vavangue',    'Lea Rivière',    'lea@vavangue.re',           '0262 45 67 89', '5 chemin des Letchis',    'Le Tampon',       '97430', '15 jours',             true)
 on conflict do nothing;
