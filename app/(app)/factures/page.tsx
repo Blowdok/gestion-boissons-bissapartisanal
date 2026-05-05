@@ -127,7 +127,7 @@ export default async function FacturesPage({
       {totalImpaye > 0 ? (
         <div className="mb-4 rounded-md border-l-4 border-l-amber-500 bg-amber-50 px-4 py-3 dark:bg-amber-950/30">
           <p className="text-sm">
-            <strong>Encours {formatEUR(totalImpaye)}</strong> sur les factures
+            <strong>En cours : {formatEUR(totalImpaye)}</strong> sur les factures
             filtrées.
           </p>
         </div>

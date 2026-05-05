@@ -122,12 +122,12 @@ export default async function ClientDetailPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Encours</CardTitle>
+            <CardTitle>En cours</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Encours et historique de livraisons disponibles à partir de la
-              Phase 3.
+              Montants en cours et historique de livraisons disponibles à
+              partir de la Phase 3.
             </p>
           </CardContent>
         </Card>
