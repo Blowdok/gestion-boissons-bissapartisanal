@@ -62,61 +62,72 @@ export default async function TourneePage() {
               0,
             );
             return (
-              <Link key={l.id} href={`/livraisons/${l.id}`} className="block">
-                <Card className="transition-colors hover:bg-muted/40">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <CardTitle className="text-lg">
+              <Card
+                key={l.id}
+                className="relative transition-colors hover:bg-muted/40 focus-within:ring-2 focus-within:ring-ring"
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <CardTitle className="text-lg">
+                        {/* Lien "stretched" : couvre toute la carte sauf les
+                            elements en z-10 (telephone). Pattern Bootstrap-like. */}
+                        <Link
+                          href={`/livraisons/${l.id}`}
+                          className="before:absolute before:inset-0 before:content-['']"
+                        >
                           {c?.raison_sociale ?? "—"}
-                        </CardTitle>
-                        {c?.contact ? (
-                          <p className="text-sm text-muted-foreground">
-                            {c.contact}
-                          </p>
-                        ) : null}
-                      </div>
-                      <Badge variant={STATUT_VARIANT[l.statut as StatutLivraison]}>
-                        {STATUT_LABEL[l.statut as StatutLivraison]}
-                      </Badge>
+                        </Link>
+                      </CardTitle>
+                      {c?.contact ? (
+                        <p className="text-sm text-muted-foreground">
+                          {c.contact}
+                        </p>
+                      ) : null}
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-sm">
-                    {(c?.adresse || c?.ville) ? (
-                      <p className="flex items-start gap-2 text-muted-foreground">
-                        <MapPin className="size-4 shrink-0 mt-0.5" />
-                        <span>
-                          {c?.adresse ?? ""}
-                          {c?.adresse && (c?.code_postal || c?.ville) ? ", " : ""}
-                          {c?.code_postal ?? ""} {c?.ville ?? ""}
-                        </span>
-                      </p>
-                    ) : null}
-                    {c?.telephone ? (
-                      <p className="flex items-center gap-2 text-muted-foreground">
-                        <Phone className="size-4" />
-                        <a href={`tel:${c.telephone}`} className="hover:underline">
-                          {c.telephone}
-                        </a>
-                      </p>
-                    ) : null}
-                    {l.notes ? (
-                      <p className="rounded-md bg-muted/50 px-3 py-2 text-xs italic text-muted-foreground">
-                        {l.notes}
-                      </p>
-                    ) : null}
-                    <div className="flex items-center justify-between pt-2">
-                      <p className="text-muted-foreground">
-                        {nbUnites} unités · {(l.lignes_livraison ?? []).length} ligne(s)
-                      </p>
-                      <div className="flex items-center gap-2 font-semibold">
-                        {formatEUR(total)}
-                        <ChevronRight className="size-4 text-muted-foreground" />
-                      </div>
+                    <Badge variant={STATUT_VARIANT[l.statut as StatutLivraison]}>
+                      {STATUT_LABEL[l.statut as StatutLivraison]}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {(c?.adresse || c?.ville) ? (
+                    <p className="flex items-start gap-2 text-muted-foreground">
+                      <MapPin className="size-4 shrink-0 mt-0.5" />
+                      <span>
+                        {c?.adresse ?? ""}
+                        {c?.adresse && (c?.code_postal || c?.ville) ? ", " : ""}
+                        {c?.code_postal ?? ""} {c?.ville ?? ""}
+                      </span>
+                    </p>
+                  ) : null}
+                  {c?.telephone ? (
+                    <p className="flex items-center gap-2 text-muted-foreground">
+                      <Phone className="size-4" />
+                      <a
+                        href={`tel:${c.telephone}`}
+                        className="relative z-10 hover:underline"
+                      >
+                        {c.telephone}
+                      </a>
+                    </p>
+                  ) : null}
+                  {l.notes ? (
+                    <p className="rounded-md bg-muted/50 px-3 py-2 text-xs italic text-muted-foreground">
+                      {l.notes}
+                    </p>
+                  ) : null}
+                  <div className="flex items-center justify-between pt-2">
+                    <p className="text-muted-foreground">
+                      {nbUnites} unités · {(l.lignes_livraison ?? []).length} ligne(s)
+                    </p>
+                    <div className="flex items-center gap-2 font-semibold">
+                      {formatEUR(total)}
+                      <ChevronRight className="size-4 text-muted-foreground" />
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                  </div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
