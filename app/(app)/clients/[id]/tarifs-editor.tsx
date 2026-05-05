@@ -186,6 +186,7 @@ function TarifRow({
                   <AlertDialogCancel>Annuler</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => {
+                      setConfirmOpen(false);
                       start(async () => {
                         await deleteTarif(clientId, produit.id);
                         setValue("");

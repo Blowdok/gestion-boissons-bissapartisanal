@@ -157,7 +157,8 @@ export function UtilisateurActions({
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() =>
+              onClick={() => {
+                setConfirmDeactivate(false);
                 start(async () => {
                   try {
                     await toggleUtilisateurActif(id, false);
@@ -166,8 +167,8 @@ export function UtilisateurActions({
                   } catch (e) {
                     toast.error(`Échec : ${(e as Error).message}`);
                   }
-                })
-              }
+                });
+              }}
             >
               Désactiver
             </AlertDialogAction>
@@ -189,7 +190,8 @@ export function UtilisateurActions({
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() =>
+              onClick={() => {
+                setConfirmDelete(false);
                 start(async () => {
                   try {
                     await supprimerUtilisateur(id);
@@ -197,8 +199,8 @@ export function UtilisateurActions({
                   } catch (e) {
                     toast.error(`Échec : ${(e as Error).message}`);
                   }
-                })
-              }
+                });
+              }}
             >
               Supprimer
             </AlertDialogAction>
@@ -229,6 +231,7 @@ export function UtilisateurActions({
               onClick={() => {
                 if (!confirmRole) return;
                 const target = confirmRole;
+                setConfirmRole(null);
                 start(async () => {
                   try {
                     await changerRole(id, target);
@@ -236,8 +239,6 @@ export function UtilisateurActions({
                     toast.success(`Rôle mis à jour : ${ROLE_LABELS[target]}.`);
                   } catch (e) {
                     toast.error(`Échec : ${(e as Error).message}`);
-                  } finally {
-                    setConfirmRole(null);
                   }
                 });
               }}

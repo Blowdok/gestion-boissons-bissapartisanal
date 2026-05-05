@@ -70,12 +70,13 @@ export function ClientStatutToggle({
         <AlertDialogFooter>
           <AlertDialogCancel>Annuler</AlertDialogCancel>
           <AlertDialogAction
-            onClick={() =>
+            onClick={() => {
+              setOpen(false);
               start(async () => {
                 await toggleClientActif(id, false);
                 router.refresh();
-              })
-            }
+              });
+            }}
           >
             Désactiver
           </AlertDialogAction>

@@ -102,7 +102,12 @@ export function ProduitActions({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={() => performToggle(false)}>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmDeactivate(false);
+                performToggle(false);
+              }}
+            >
               Désactiver
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -124,7 +129,8 @@ export function ProduitActions({
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() =>
+              onClick={() => {
+                setConfirmDelete(false);
                 start(async () => {
                   try {
                     await supprimerProduit(id);
@@ -133,8 +139,8 @@ export function ProduitActions({
                   } catch (e) {
                     toast.error(`Échec : ${(e as Error).message}`);
                   }
-                })
-              }
+                });
+              }}
             >
               Supprimer
             </AlertDialogAction>
