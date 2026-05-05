@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Pencil } from "lucide-react";
 import { requireRole } from "@/lib/auth/guards";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -80,6 +80,10 @@ export default async function LivraisonDetailPage({
     profile.role === "patron" ||
     profile.role === "fabrication" ||
     (profile.role === "livreur" && isLivreurAssigne);
+  const canEditMetadata =
+    (profile.role === "patron" || profile.role === "fabrication") &&
+    statut !== "livree" &&
+    statut !== "annulee";
 
   return (
     <div>
@@ -106,6 +110,15 @@ export default async function LivraisonDetailPage({
             <Badge variant={STATUT_VARIANT[statut]} className="mr-2">
               {STATUT_LABEL[statut]}
             </Badge>
+            {canEditMetadata ? (
+              <Link
+                href={`/livraisons/${livraison.id}/edit`}
+                className={buttonVariants({ variant: "outline" })}
+              >
+                <Pencil className="size-4" />
+                Modifier
+              </Link>
+            ) : null}
             {canChangeStatus ? (
               <LivraisonStatusActions
                 id={livraison.id}

@@ -6,6 +6,12 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth/guards";
 import { ligneSchema, livraisonSchema } from "./schemas";
 
+const editMetadataSchema = z.object({
+  date_prevue: z.string().min(1, "Date requise."),
+  livreur_id: z.string().uuid().optional().or(z.literal("")),
+  notes: z.string().trim().max(500).optional().or(z.literal("")),
+});
+
 export type ActionState = {
   error?: string;
   fieldErrors?: Record<string, string>;
@@ -76,6 +82,51 @@ export async function createLivraison(
   revalidatePath("/livraisons");
   revalidatePath("/stock");
   redirect(`/livraisons/${livraison.id}`);
+}
+
+export async function updateLivraisonMetadata(
+  id: string,
+  _prev: ActionState | undefined,
+  formData: FormData,
+): Promise<ActionState> {
+  const { supabase } = await requireRole("patron", "fabrication");
+
+  const parsed = editMetadataSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return { fieldErrors: fieldErrors(parsed.error) };
+  }
+
+  const { date_prevue, livreur_id, notes } = parsed.data;
+  const { error } = await supabase
+    .from("livraisons")
+    .update({
+      date_prevue,
+      livreur_id: livreur_id || null,
+      notes: notes || null,
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/livraisons");
+  revalidatePath(`/livraisons/${id}`);
+  revalidatePath("/livraisons/tournee");
+  return {};
+}
+
+export async function claimLivraison(id: string) {
+  const { supabase } = await requireRole("livreur");
+  const { error } = await supabase.rpc("claim_livraison", { p_id: id });
+  if (error) {
+    // Mappe les messages techniques sur des messages metier
+    if (/deja prise|deja assignee/i.test(error.message)) {
+      throw new Error("Cette livraison vient d'être prise par un autre livreur.");
+    }
+    throw new Error(error.message);
+  }
+  revalidatePath("/livraisons/tournee");
+  revalidatePath(`/livraisons/${id}`);
+  revalidatePath("/livraisons");
 }
 
 export async function changerStatutLivraison(
