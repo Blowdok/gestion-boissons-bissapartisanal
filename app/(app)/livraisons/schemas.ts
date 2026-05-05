@@ -17,6 +17,29 @@ export const STATUT_VARIANT: Record<StatutLivraison, "default" | "secondary" | "
   annulee: "destructive",
 };
 
+// Classes Tailwind pour des badges colores (override le variant) :
+// fond fonce + texte blanc, lisible en clair et en sombre
+export const STATUT_BADGE_CLASS: Record<StatutLivraison, string> = {
+  programmee: "bg-blue-700 text-white hover:bg-blue-700 dark:bg-blue-800",
+  en_cours: "bg-amber-600 text-white hover:bg-amber-600 dark:bg-amber-700",
+  livree: "bg-emerald-700 text-white hover:bg-emerald-700 dark:bg-emerald-800",
+  annulee: "bg-zinc-700 text-white hover:bg-zinc-700 dark:bg-zinc-800",
+};
+
+export type StatutPaiement = "paye" | "partiel" | "impaye";
+
+export const STATUT_PAIEMENT_LABEL: Record<StatutPaiement, string> = {
+  paye: "Payée",
+  partiel: "Partielle",
+  impaye: "Impayée",
+};
+
+export const STATUT_PAIEMENT_BADGE_CLASS: Record<StatutPaiement, string> = {
+  paye: "bg-emerald-700 text-white hover:bg-emerald-700 dark:bg-emerald-800",
+  partiel: "bg-amber-600 text-white hover:bg-amber-600 dark:bg-amber-700",
+  impaye: "bg-red-700 text-white hover:bg-red-700 dark:bg-red-800",
+};
+
 export const MODES_PAIEMENT = ["especes", "virement", "cheque", "carte"] as const;
 export type ModePaiement = (typeof MODES_PAIEMENT)[number];
 

@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { formatDate, formatEUR } from "@/lib/utils/format";
 import {
   STATUT_LABEL,
-  STATUT_VARIANT,
+  STATUT_BADGE_CLASS,
   type StatutLivraison,
 } from "../schemas";
 import { ClaimButton } from "./claim-button";
@@ -215,7 +215,7 @@ function Liste({
                 <p className="text-sm text-muted-foreground">{c.contact}</p>
               ) : null}
             </div>
-            <Badge variant={STATUT_VARIANT[l.statut as StatutLivraison]}>
+            <Badge className={STATUT_BADGE_CLASS[l.statut as StatutLivraison]}>
               {STATUT_LABEL[l.statut as StatutLivraison]}
             </Badge>
           </div>

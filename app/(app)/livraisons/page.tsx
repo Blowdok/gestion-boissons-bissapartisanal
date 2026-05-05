@@ -17,7 +17,7 @@ import { formatDate, formatEUR } from "@/lib/utils/format";
 import {
   STATUTS_LIVRAISON,
   STATUT_LABEL,
-  STATUT_VARIANT,
+  STATUT_BADGE_CLASS,
   MODE_LABEL,
   type StatutLivraison,
   type ModePaiement,
@@ -178,7 +178,7 @@ export default async function LivraisonsPage({
                       })()}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={STATUT_VARIANT[l.statut as StatutLivraison]}>
+                      <Badge className={STATUT_BADGE_CLASS[l.statut as StatutLivraison]}>
                         {STATUT_LABEL[l.statut as StatutLivraison]}
                       </Badge>
                     </TableCell>

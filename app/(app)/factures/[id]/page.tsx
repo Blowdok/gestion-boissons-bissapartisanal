@@ -20,7 +20,13 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/layout/page-header";
 import { formatDate, formatDateTime, formatEUR } from "@/lib/utils/format";
-import { MODE_LABEL, type ModePaiement } from "../../livraisons/schemas";
+import {
+  MODE_LABEL,
+  STATUT_PAIEMENT_LABEL,
+  STATUT_PAIEMENT_BADGE_CLASS,
+  type ModePaiement,
+  type StatutPaiement,
+} from "../../livraisons/schemas";
 import { PaiementForm } from "./paiement-form";
 import { DeletePaiementButton } from "./delete-paiement";
 
@@ -97,20 +103,9 @@ export default async function FactureDetailPage({
           <>
             Émise le {formatDate(facture.date_emission)} ·{" "}
             <Badge
-              variant={
-                facture.statut_paiement === "paye"
-                  ? "default"
-                  : facture.statut_paiement === "partiel"
-                    ? "secondary"
-                    : "destructive"
-              }
-              className="ml-1"
+              className={`ml-1 ${STATUT_PAIEMENT_BADGE_CLASS[facture.statut_paiement as StatutPaiement]}`}
             >
-              {facture.statut_paiement === "paye"
-                ? "Payée"
-                : facture.statut_paiement === "partiel"
-                  ? "Partielle"
-                  : "Impayée"}
+              {STATUT_PAIEMENT_LABEL[facture.statut_paiement as StatutPaiement]}
             </Badge>
           </>
         }

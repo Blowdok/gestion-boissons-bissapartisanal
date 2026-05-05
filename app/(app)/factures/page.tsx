@@ -12,7 +12,13 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/layout/page-header";
 import { formatDate, formatEUR } from "@/lib/utils/format";
-import { MODE_LABEL, type ModePaiement } from "../livraisons/schemas";
+import {
+  MODE_LABEL,
+  STATUT_PAIEMENT_LABEL,
+  STATUT_PAIEMENT_BADGE_CLASS,
+  type ModePaiement,
+  type StatutPaiement,
+} from "../livraisons/schemas";
 
 export const metadata = { title: "Factures · Gestion Boissons" };
 
@@ -181,19 +187,11 @@ export default async function FacturesPage({
                   </TableCell>
                   <TableCell>
                     <Badge
-                      variant={
-                        f.statut_paiement === "paye"
-                          ? "default"
-                          : f.statut_paiement === "partiel"
-                            ? "secondary"
-                            : "destructive"
+                      className={
+                        STATUT_PAIEMENT_BADGE_CLASS[f.statut_paiement as StatutPaiement]
                       }
                     >
-                      {f.statut_paiement === "paye"
-                        ? "Payée"
-                        : f.statut_paiement === "partiel"
-                          ? "Partielle"
-                          : "Impayée"}
+                      {STATUT_PAIEMENT_LABEL[f.statut_paiement as StatutPaiement]}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">

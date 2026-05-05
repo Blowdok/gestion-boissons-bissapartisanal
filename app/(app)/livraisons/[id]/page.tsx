@@ -22,8 +22,11 @@ import { PageHeader } from "@/components/layout/page-header";
 import { formatDate, formatDateTime, formatEUR } from "@/lib/utils/format";
 import {
   STATUT_LABEL,
-  STATUT_VARIANT,
+  STATUT_BADGE_CLASS,
+  STATUT_PAIEMENT_LABEL,
+  STATUT_PAIEMENT_BADGE_CLASS,
   type StatutLivraison,
+  type StatutPaiement,
 } from "../schemas";
 import { LivraisonStatusActions } from "./status-actions";
 
@@ -107,7 +110,7 @@ export default async function LivraisonDetailPage({
         }
         actions={
           <>
-            <Badge variant={STATUT_VARIANT[statut]} className="mr-2">
+            <Badge className={`mr-2 ${STATUT_BADGE_CLASS[statut]}`}>
               {STATUT_LABEL[statut]}
             </Badge>
             {canEditMetadata ? (
@@ -243,19 +246,11 @@ export default async function LivraisonDetailPage({
                   </p>
                 </div>
                 <Badge
-                  variant={
-                    facture.statut_paiement === "paye"
-                      ? "default"
-                      : facture.statut_paiement === "partiel"
-                        ? "secondary"
-                        : "destructive"
+                  className={
+                    STATUT_PAIEMENT_BADGE_CLASS[facture.statut_paiement as StatutPaiement]
                   }
                 >
-                  {facture.statut_paiement === "paye"
-                    ? "Payée"
-                    : facture.statut_paiement === "partiel"
-                      ? "Partielle"
-                      : "Impayée"}
+                  {STATUT_PAIEMENT_LABEL[facture.statut_paiement as StatutPaiement]}
                 </Badge>
                 <Link
                   href={`/factures/${facture.id}`}
