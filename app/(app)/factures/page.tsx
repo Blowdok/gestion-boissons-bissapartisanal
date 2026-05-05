@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/layout/page-header";
 import { formatDate, formatEUR } from "@/lib/utils/format";
+import { MODE_LABEL, type ModePaiement } from "../livraisons/schemas";
 
 export const metadata = { title: "Factures · Gestion Boissons" };
 
@@ -80,6 +81,21 @@ export default async function FacturesPage({
     : { data: [] };
   const clientMap = new Map(clients?.map((c) => [c.id, c.raison_sociale]) ?? []);
 
+  // Modes de paiement utilises par facture (une facture peut avoir plusieurs paiements)
+  const factureIds = (factures ?? []).map((f) => f.id);
+  const { data: paiements } = factureIds.length
+    ? await supabase
+        .from("paiements")
+        .select("facture_id, mode")
+        .in("facture_id", factureIds)
+    : { data: [] };
+  const modesParFacture = new Map<string, Set<ModePaiement>>();
+  for (const p of paiements ?? []) {
+    const set = modesParFacture.get(p.facture_id) ?? new Set();
+    set.add(p.mode as ModePaiement);
+    modesParFacture.set(p.facture_id, set);
+  }
+
   const totalImpaye = (factures ?? [])
     .filter((f) => f.statut_paiement !== "paye")
     .reduce((acc, f) => acc + Number(f.solde), 0);
@@ -128,6 +144,7 @@ export default async function FacturesPage({
               <TableHead className="text-right">Encaissé</TableHead>
               <TableHead className="text-right">Solde</TableHead>
               <TableHead>Statut</TableHead>
+              <TableHead>Mode</TableHead>
               <TableHead className="text-right">Ancienneté</TableHead>
             </TableRow>
           </TableHeader>
@@ -172,6 +189,13 @@ export default async function FacturesPage({
                           : "Impayée"}
                     </Badge>
                   </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {(() => {
+                      const modes = Array.from(modesParFacture.get(f.id) ?? []);
+                      if (modes.length === 0) return "—";
+                      return modes.map((m) => MODE_LABEL[m]).join(" + ");
+                    })()}
+                  </TableCell>
                   <TableCell className="text-right text-muted-foreground">
                     {f.anciennete_jours} j
                   </TableCell>
@@ -179,7 +203,7 @@ export default async function FacturesPage({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
                   Aucune facture pour ce filtre.
                 </TableCell>
               </TableRow>

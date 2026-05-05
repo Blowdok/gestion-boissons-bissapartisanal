@@ -18,7 +18,9 @@ import {
   STATUTS_LIVRAISON,
   STATUT_LABEL,
   STATUT_VARIANT,
+  MODE_LABEL,
   type StatutLivraison,
+  type ModePaiement,
 } from "./schemas";
 
 export const metadata = { title: "Livraisons · Gestion Boissons" };
@@ -60,6 +62,23 @@ export default async function LivraisonsPage({
         );
       })
     : livraisons;
+
+  // Mode de paiement par livraison (via la facture liee + ses paiements)
+  const livraisonIds = (filtered ?? []).map((l) => l.id);
+  const { data: facturesPaiements } = livraisonIds.length
+    ? await supabase
+        .from("factures")
+        .select("livraison_id, paiements(mode)")
+        .in("livraison_id", livraisonIds)
+    : { data: [] };
+  const modesParLivraison = new Map<string, Set<ModePaiement>>();
+  for (const f of facturesPaiements ?? []) {
+    const set = new Set<ModePaiement>();
+    for (const p of f.paiements ?? []) {
+      set.add(p.mode as ModePaiement);
+    }
+    if (set.size > 0) modesParLivraison.set(f.livraison_id, set);
+  }
 
   return (
     <div>
@@ -115,6 +134,7 @@ export default async function LivraisonsPage({
               <TableHead className="text-right">Lignes</TableHead>
               <TableHead className="text-right">Total HT</TableHead>
               <TableHead>Statut</TableHead>
+              <TableHead>Mode paiement</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -155,12 +175,19 @@ export default async function LivraisonsPage({
                         {STATUT_LABEL[l.statut as StatutLivraison]}
                       </Badge>
                     </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {(() => {
+                        const modes = Array.from(modesParLivraison.get(l.id) ?? []);
+                        if (modes.length === 0) return "—";
+                        return modes.map((m) => MODE_LABEL[m]).join(" + ");
+                      })()}
+                    </TableCell>
                   </TableRow>
                 );
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
                   Aucune livraison.
                 </TableCell>
               </TableRow>
