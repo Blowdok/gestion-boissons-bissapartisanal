@@ -264,6 +264,7 @@ export default async function FactureDetailPage({
                 <TableHead>Date</TableHead>
                 <TableHead>Mode</TableHead>
                 <TableHead className="text-right">Montant</TableHead>
+                <TableHead>Statut</TableHead>
                 <TableHead>Notes</TableHead>
                 <TableHead>Saisi le</TableHead>
                 <TableHead className="w-12"></TableHead>
@@ -271,37 +272,52 @@ export default async function FactureDetailPage({
             </TableHeader>
             <TableBody>
               {paiements && paiements.length > 0 ? (
-                paiements.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell>{formatDate(p.date_encaissement)}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">
-                        {MODE_LABEL[p.mode as ModePaiement]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatEUR(Number(p.montant))}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {p.notes ?? "—"}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-xs">
-                      {formatDateTime(p.created_at)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {peutSupprimer(p) ? (
-                        <DeletePaiementButton
-                          id={p.id}
-                          montant={formatEUR(Number(p.montant))}
-                          mode={MODE_LABEL[p.mode as ModePaiement]}
-                        />
-                      ) : null}
-                    </TableCell>
-                  </TableRow>
-                ))
+                paiements.map((p) => {
+                  const todayStr = new Date().toISOString().slice(0, 10);
+                  const estFutur = p.date_encaissement > todayStr;
+                  return (
+                    <TableRow key={p.id}>
+                      <TableCell>{formatDate(p.date_encaissement)}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          {MODE_LABEL[p.mode as ModePaiement]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {formatEUR(Number(p.montant))}
+                      </TableCell>
+                      <TableCell>
+                        {estFutur ? (
+                          <Badge className="bg-amber-600 text-white hover:bg-amber-600 dark:bg-amber-700">
+                            À encaisser
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-emerald-700 text-white hover:bg-emerald-700 dark:bg-emerald-800">
+                            Encaissé
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {p.notes ?? "—"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-xs">
+                        {formatDateTime(p.created_at)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {peutSupprimer(p) ? (
+                          <DeletePaiementButton
+                            id={p.id}
+                            montant={formatEUR(Number(p.montant))}
+                            mode={MODE_LABEL[p.mode as ModePaiement]}
+                          />
+                        ) : null}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                     Aucun paiement enregistré.
                   </TableCell>
                 </TableRow>
