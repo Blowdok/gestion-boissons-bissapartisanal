@@ -1,7 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Monitor, Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,16 +9,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTheme, type Theme } from "@/components/theme-provider";
 
 export function ThemeToggle() {
-  const { setTheme, theme } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // L'icone affichee depend du theme stocke en localStorage, donc inconnue
+  // au SSR -> on attend le mount cote client pour eviter tout mismatch.
+  useEffect(() => setMounted(true), []);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
           <Button variant="outline" size="sm" className="w-full justify-start">
-            <ThemeIcon current={theme} />
+            <ThemeIcon theme={mounted ? theme : "system"} />
             <span className="text-xs">Apparence</span>
           </Button>
         }
@@ -41,8 +47,8 @@ export function ThemeToggle() {
   );
 }
 
-function ThemeIcon({ current }: { current: string | undefined }) {
-  if (current === "light") return <Sun className="size-4" />;
-  if (current === "dark") return <Moon className="size-4" />;
+function ThemeIcon({ theme }: { theme: Theme }) {
+  if (theme === "light") return <Sun className="size-4" />;
+  if (theme === "dark") return <Moon className="size-4" />;
   return <Monitor className="size-4" />;
 }
