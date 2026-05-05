@@ -36,8 +36,9 @@ export default async function ClientDetailPage({
 
   const { data: parfums } = await supabase
     .from("parfums")
-    .select("id, nom, prix_defaut_ht, actif")
+    .select("id, nom, gamme, format, prix_defaut_ht, actif")
     .eq("actif", true)
+    .order("gamme")
     .order("nom");
 
   const { data: tarifs } = await supabase
@@ -128,6 +129,8 @@ export default async function ClientDetailPage({
             parfums?.map((p) => ({
               id: p.id,
               nom: p.nom,
+              gamme: p.gamme as "bissapa" | "zandjabila",
+              format: p.format,
               prix_defaut_ht: Number(p.prix_defaut_ht),
               prix_negocie: tarifsMap.get(p.id) ?? null,
             })) ?? []

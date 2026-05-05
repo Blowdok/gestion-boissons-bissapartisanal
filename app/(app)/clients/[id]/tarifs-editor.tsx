@@ -25,8 +25,15 @@ import { upsertTarif, deleteTarif } from "../actions";
 type ParfumLigne = {
   id: string;
   nom: string;
+  gamme: "bissapa" | "zandjabila";
+  format: string;
   prix_defaut_ht: number;
   prix_negocie: number | null;
+};
+
+const GAMME_LABEL: Record<ParfumLigne["gamme"], string> = {
+  bissapa: "Bissapa",
+  zandjabila: "Zandjabila",
 };
 
 export function TarifsEditor({
@@ -51,7 +58,9 @@ export function TarifsEditor({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Parfum</TableHead>
+              <TableHead>Produit</TableHead>
+              <TableHead>Gamme</TableHead>
+              <TableHead>Format</TableHead>
               <TableHead className="text-right">Prix par défaut</TableHead>
               <TableHead>Prix négocié</TableHead>
               {canWrite ? <TableHead className="w-24"></TableHead> : null}
@@ -93,6 +102,8 @@ function TarifRow({
   return (
     <TableRow>
       <TableCell className="font-medium">{parfum.nom}</TableCell>
+      <TableCell className="text-muted-foreground">{GAMME_LABEL[parfum.gamme]}</TableCell>
+      <TableCell className="text-muted-foreground">{parfum.format}</TableCell>
       <TableCell className="text-right text-muted-foreground">
         {formatEUR(parfum.prix_defaut_ht)}
       </TableCell>
