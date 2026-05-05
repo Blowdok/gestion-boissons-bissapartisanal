@@ -129,12 +129,12 @@ export default async function LivraisonsPage({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-28">Date prévue</TableHead>
+              <TableHead>Date prévue</TableHead>
               <TableHead>Client</TableHead>
-              <TableHead className="w-20 text-right">Lignes</TableHead>
-              <TableHead className="w-28 text-right">Total HT</TableHead>
-              <TableHead className="w-44 pl-6">Mode paiement</TableHead>
-              <TableHead className="w-28">Statut</TableHead>
+              <TableHead className="text-right">Lignes</TableHead>
+              <TableHead className="text-right">Total HT</TableHead>
+              <TableHead className="pl-6">Mode paiement</TableHead>
+              <TableHead>Statut</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
