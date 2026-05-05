@@ -17,6 +17,7 @@ export function ThemeToggle() {
 
   // L'icone affichee depend du theme stocke en localStorage, donc inconnue
   // au SSR -> on attend le mount cote client pour eviter tout mismatch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   return (

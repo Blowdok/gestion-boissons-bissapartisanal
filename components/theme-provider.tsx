@@ -38,6 +38,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const stored = (localStorage.getItem(STORAGE_KEY) as Theme | null) ?? "system";
+    // localStorage n'est pas accessible au SSR : on synchronise apres mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setThemeState(stored);
   }, []);
 
