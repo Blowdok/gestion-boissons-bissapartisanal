@@ -3,12 +3,16 @@
 -- L'Adjoint est un Patron temporaire avec droits élargis sur l'opérationnel
 -- mais SANS accès finance, suppression définitive d'utilisateurs, ni promotion
 -- vers Patron/Adjoint.
+--
+-- ⚠ APPLIQUER EN 2 ÉTAPES si on passe par le SQL Editor (Postgres refuse
+-- d'utiliser une nouvelle valeur d'enum dans la même transaction où elle est
+-- créée — erreur 55P04). Avec `supabase db push`, chaque migration est sa
+-- propre transaction donc OK.
 -- =============================================================================
 
 -- 1. Ajout de la valeur 'adjoint' à l'enum role_utilisateur
-do $$ begin
-  alter type public.role_utilisateur add value if not exists 'adjoint' before 'fabrication';
-exception when others then null; end $$;
+-- ⚠ Sur SQL Editor : exécuter SEULE cette ligne d'abord, puis le reste du fichier
+alter type public.role_utilisateur add value if not exists 'adjoint' before 'fabrication';
 
 -- =============================================================================
 -- 2. Refonte des policies RLS
