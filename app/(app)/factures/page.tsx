@@ -137,15 +137,15 @@ export default async function FacturesPage({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N°</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead className="w-36">N°</TableHead>
+              <TableHead className="w-24">Date</TableHead>
               <TableHead>Client</TableHead>
-              <TableHead className="text-right">Montant HT</TableHead>
-              <TableHead className="pl-6">Mode</TableHead>
-              <TableHead className="text-right">Encaissé</TableHead>
-              <TableHead className="text-right">Solde</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead className="text-right">Ancienneté</TableHead>
+              <TableHead className="w-28 text-right">Montant HT</TableHead>
+              <TableHead className="w-40 pl-6">Mode</TableHead>
+              <TableHead className="w-28 text-right">Encaissé</TableHead>
+              <TableHead className="w-28 text-right">Solde</TableHead>
+              <TableHead className="w-24">Statut</TableHead>
+              <TableHead className="w-24 text-right whitespace-nowrap">Ancienneté</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
