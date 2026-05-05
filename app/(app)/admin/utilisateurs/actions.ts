@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth/guards";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { utilisateurSchema, generateTempPassword } from "./schemas";
@@ -101,11 +100,13 @@ export async function supprimerUtilisateur(id: string) {
     throw new Error("Tu ne peux pas supprimer ton propre compte.");
   }
   const admin = createAdminClient();
-  // Le ON DELETE CASCADE sur profiles.id supprimera automatiquement le profil.
+  // Le ON DELETE CASCADE sur profiles.id supprime automatiquement le profil.
   const { error } = await admin.auth.admin.deleteUser(id);
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/utilisateurs");
   revalidatePath("/admin");
-  redirect("/admin/utilisateurs");
+  // Pas de redirect() ici : on est deja sur /admin/utilisateurs et le caller
+  // appelle router.refresh() pour mettre a jour la liste. redirect() throwerait
+  // un NEXT_REDIRECT qui serait pris a tort pour une erreur dans le try/catch.
 }

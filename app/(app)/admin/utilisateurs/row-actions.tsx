@@ -195,6 +195,7 @@ export function UtilisateurActions({
                 start(async () => {
                   try {
                     await supprimerUtilisateur(id);
+                    router.refresh();
                     toast.success(`${nom} supprimé.`);
                   } catch (e) {
                     toast.error(`Échec : ${(e as Error).message}`);
