@@ -82,3 +82,24 @@ export async function toggleProduitActif(id: string, actif: boolean) {
   revalidatePath("/admin/produits");
   revalidatePath("/admin");
 }
+
+/**
+ * Suppression definitive d'un produit. La cascade sur tarifs_clients supprime
+ * automatiquement les tarifs negocies. En revanche, si le produit est reference
+ * par des lots de production ou des lignes de livraison (a partir de la
+ * Phase 2/3), la BDD refuse la suppression -> on retombe sur la desactivation.
+ */
+export async function supprimerProduit(id: string) {
+  const { supabase } = await requireRole("patron");
+  const { error } = await supabase.from("produits").delete().eq("id", id);
+  if (error) {
+    if (error.code === "23503") {
+      throw new Error(
+        "Ce produit est utilisé dans des lots ou livraisons : désactive-le plutôt que de le supprimer.",
+      );
+    }
+    throw new Error(error.message);
+  }
+  revalidatePath("/admin/produits");
+  revalidatePath("/admin");
+}

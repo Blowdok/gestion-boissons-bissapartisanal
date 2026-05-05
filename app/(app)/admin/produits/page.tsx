@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Pencil, Plus } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { requireRole } from "@/lib/auth/guards";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,7 @@ import {
 import { PageHeader } from "@/components/layout/page-header";
 import { formatEUR } from "@/lib/utils/format";
 import { GAMME_LABELS, type Gamme } from "./schemas";
-import { ProduitStatutToggle } from "./statut-toggle";
+import { ProduitActions } from "./row-actions";
 
 export const metadata = { title: "Catalogue produits · Admin" };
 
@@ -60,8 +60,8 @@ export default async function ProduitsAdminPage() {
               <TableHead>Format</TableHead>
               <TableHead className="text-right">Prix HT</TableHead>
               <TableHead className="text-right">Seuil</TableHead>
-              <TableHead className="text-right">Statut</TableHead>
-              <TableHead className="w-32 text-right">Actions</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -79,31 +79,15 @@ export default async function ProduitsAdminPage() {
                   <TableCell className="text-right text-muted-foreground">
                     {p.seuil_alerte}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell>
                     {p.actif ? (
                       <Badge variant="secondary">Actif</Badge>
                     ) : (
                       <Badge variant="outline">Inactif</Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Link
-                        href={`/admin/produits/${p.id}/edit`}
-                        className={buttonVariants({
-                          variant: "ghost",
-                          size: "icon-sm",
-                        })}
-                        aria-label="Modifier"
-                      >
-                        <Pencil className="size-4" />
-                      </Link>
-                      <ProduitStatutToggle
-                        id={p.id}
-                        actif={p.actif}
-                        nom={p.nom}
-                      />
-                    </div>
+                  <TableCell>
+                    <ProduitActions id={p.id} actif={p.actif} nom={p.nom} />
                   </TableCell>
                 </TableRow>
               ))
