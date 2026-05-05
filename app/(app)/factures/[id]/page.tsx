@@ -22,6 +22,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { formatDate, formatDateTime, formatEUR } from "@/lib/utils/format";
 import { MODE_LABEL, type ModePaiement } from "../../livraisons/schemas";
 import { PaiementForm } from "./paiement-form";
+import { DeletePaiementButton } from "./delete-paiement";
 
 export const metadata = { title: "Facture · Gestion Boissons" };
 
@@ -31,7 +32,7 @@ export default async function FactureDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase } = await requireRole("patron", "livreur");
+  const { profile, user, supabase } = await requireRole("patron", "livreur");
 
   const { data: facture } = await supabase
     .from("factures_avec_solde")
@@ -58,12 +59,27 @@ export default async function FactureDetailPage({
       .maybeSingle(),
     supabase
       .from("paiements")
-      .select("id, montant, mode, date_encaissement, notes, created_at")
+      .select("id, montant, mode, date_encaissement, notes, created_at, encaisse_par")
       .eq("facture_id", id)
       .order("date_encaissement", { ascending: false }),
   ]);
 
   const lignes = livraison?.lignes_livraison ?? [];
+
+  // Verifie si l'utilisateur courant peut supprimer un paiement donne :
+  // - Patron : toujours
+  // - Livreur : seulement les siens, < 24h
+  // Date.now() est appelee une seule fois par requete (Server Component) :
+  // la regle react-hooks/purity vise les Client Components qui re-render
+  // souvent, ici c'est sur (1 render par requete HTTP).
+  // eslint-disable-next-line react-hooks/purity
+  const seuil24h = Date.now() - 24 * 60 * 60 * 1000;
+  const peutSupprimer = (p: { encaisse_par: string | null; created_at: string }) => {
+    if (profile.role === "patron") return true;
+    if (profile.role !== "livreur") return false;
+    if (p.encaisse_par !== user.id) return false;
+    return new Date(p.created_at).getTime() > seuil24h;
+  };
 
   return (
     <div>
@@ -247,6 +263,7 @@ export default async function FactureDetailPage({
                 <TableHead className="text-right">Montant</TableHead>
                 <TableHead>Notes</TableHead>
                 <TableHead>Saisi le</TableHead>
+                <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -268,11 +285,20 @@ export default async function FactureDetailPage({
                     <TableCell className="text-muted-foreground text-xs">
                       {formatDateTime(p.created_at)}
                     </TableCell>
+                    <TableCell className="text-right">
+                      {peutSupprimer(p) ? (
+                        <DeletePaiementButton
+                          id={p.id}
+                          montant={formatEUR(Number(p.montant))}
+                          mode={MODE_LABEL[p.mode as ModePaiement]}
+                        />
+                      ) : null}
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                     Aucun paiement enregistré.
                   </TableCell>
                 </TableRow>
