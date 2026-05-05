@@ -94,7 +94,17 @@ function SidebarContent({
       <nav className="flex-1 overflow-y-auto p-3">
         <ul className="space-y-1">
           {items.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || pathname.startsWith(href + "/");
+            // Une entree est active si son href est le PLUS LONG prefixe matchant
+            // le pathname courant. Evite de surligner /livraisons quand on est
+            // sur /livraisons/tournee (qui a sa propre entree plus specifique).
+            const matches = pathname === href || pathname.startsWith(href + "/");
+            const longerMatch = items.some(
+              (other) =>
+                other.href !== href &&
+                other.href.length > href.length &&
+                (pathname === other.href || pathname.startsWith(other.href + "/")),
+            );
+            const active = matches && !longerMatch;
             return (
               <li key={href}>
                 <Link

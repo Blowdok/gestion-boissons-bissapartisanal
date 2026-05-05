@@ -4,6 +4,7 @@ import {
   Factory,
   Users,
   Truck,
+  Route,
   Receipt,
   Coins,
   Settings,
@@ -41,6 +42,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/clients",
     label: "Clients",
     icon: Users,
+    roles: ["patron", "livreur"],
+  },
+  {
+    href: "/livraisons/tournee",
+    label: "Ma tournée",
+    icon: Route,
     roles: ["patron", "livreur"],
   },
   {
