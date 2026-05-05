@@ -133,7 +133,7 @@ export default async function LivraisonsPage({
               <TableHead>Client</TableHead>
               <TableHead className="text-right">Lignes</TableHead>
               <TableHead className="text-right">Total HT</TableHead>
-              <TableHead>Mode paiement</TableHead>
+              <TableHead className="pl-6">Mode paiement</TableHead>
               <TableHead>Statut</TableHead>
             </TableRow>
           </TableHeader>
@@ -170,7 +170,7 @@ export default async function LivraisonsPage({
                     <TableCell className="text-right font-medium">
                       {formatEUR(total)}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="pl-6 text-muted-foreground">
                       {(() => {
                         const modes = Array.from(modesParLivraison.get(l.id) ?? []);
                         if (modes.length === 0) return "—";

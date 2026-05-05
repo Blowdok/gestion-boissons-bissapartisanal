@@ -141,7 +141,7 @@ export default async function FacturesPage({
               <TableHead>Date</TableHead>
               <TableHead>Client</TableHead>
               <TableHead className="text-right">Montant HT</TableHead>
-              <TableHead>Mode</TableHead>
+              <TableHead className="pl-6">Mode</TableHead>
               <TableHead className="text-right">Encaissé</TableHead>
               <TableHead className="text-right">Solde</TableHead>
               <TableHead>Statut</TableHead>
@@ -166,7 +166,7 @@ export default async function FacturesPage({
                   <TableCell className="text-right">
                     {formatEUR(Number(f.montant_ht))}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="pl-6 text-muted-foreground">
                     {(() => {
                       const modes = Array.from(modesParFacture.get(f.id) ?? []);
                       if (modes.length === 0) return "—";
