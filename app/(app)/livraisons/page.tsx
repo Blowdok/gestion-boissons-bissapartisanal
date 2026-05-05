@@ -133,8 +133,8 @@ export default async function LivraisonsPage({
               <TableHead>Client</TableHead>
               <TableHead className="text-right">Lignes</TableHead>
               <TableHead className="text-right">Total HT</TableHead>
-              <TableHead>Statut</TableHead>
               <TableHead>Mode paiement</TableHead>
+              <TableHead>Statut</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -170,17 +170,17 @@ export default async function LivraisonsPage({
                     <TableCell className="text-right font-medium">
                       {formatEUR(total)}
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={STATUT_VARIANT[l.statut as StatutLivraison]}>
-                        {STATUT_LABEL[l.statut as StatutLivraison]}
-                      </Badge>
-                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {(() => {
                         const modes = Array.from(modesParLivraison.get(l.id) ?? []);
                         if (modes.length === 0) return "—";
                         return modes.map((m) => MODE_LABEL[m]).join(" + ");
                       })()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={STATUT_VARIANT[l.statut as StatutLivraison]}>
+                        {STATUT_LABEL[l.statut as StatutLivraison]}
+                      </Badge>
                     </TableCell>
                   </TableRow>
                 );
