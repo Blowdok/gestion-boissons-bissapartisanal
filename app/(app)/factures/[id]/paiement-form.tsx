@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -24,27 +24,40 @@ export function PaiementForm({
   soldeRestant: number;
 }) {
   const router = useRouter();
-  const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, pending] = useActionState<ActionState | undefined, FormData>(
     enregistrerPaiement,
     undefined,
   );
   const fe = state?.fieldErrors ?? {};
 
-  // Toast + reset apres succes (pas d'erreur ni fieldErrors)
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Inputs controles : evite le warning Base UI sur les defaultValue
+  // qui changent (soldeRestant evolue apres chaque paiement)
+  const [montant, setMontant] = useState<string>(soldeRestant.toFixed(2));
+  const [mode, setMode] = useState<string>("virement");
+  const [date, setDate] = useState<string>(today);
+  const [notes, setNotes] = useState<string>("");
+
+  // Si le solde change apres un paiement reussi, re-pre-remplit le montant
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMontant(soldeRestant.toFixed(2));
+  }, [soldeRestant]);
+
+  // Toast + reset apres succes
   useEffect(() => {
     if (!state) return;
     if (!state.error && !state.fieldErrors) {
       toast.success("Paiement enregistré.");
-      formRef.current?.reset();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNotes("");
       router.refresh();
     }
   }, [state, router]);
 
-  const today = new Date().toISOString().slice(0, 10);
-
   return (
-    <form ref={formRef} action={formAction} className="grid gap-4 sm:grid-cols-4">
+    <form action={formAction} className="grid gap-4 sm:grid-cols-4">
       <input type="hidden" name="facture_id" value={factureId} />
 
       <div>
@@ -57,7 +70,8 @@ export function PaiementForm({
           min="0.01"
           max={soldeRestant}
           required
-          defaultValue={soldeRestant.toFixed(2)}
+          value={montant}
+          onChange={(e) => setMontant(e.target.value)}
           className="mt-2"
           disabled={pending}
         />
@@ -69,7 +83,12 @@ export function PaiementForm({
 
       <div>
         <Label htmlFor="mode">Mode *</Label>
-        <Select name="mode" defaultValue="virement" disabled={pending}>
+        <Select
+          name="mode"
+          value={mode}
+          onValueChange={(v) => setMode(v ?? "virement")}
+          disabled={pending}
+        >
           <SelectTrigger className="mt-2">
             <SelectValue />
           </SelectTrigger>
@@ -90,7 +109,8 @@ export function PaiementForm({
           name="date_encaissement"
           type="date"
           required
-          defaultValue={today}
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
           max={today}
           className="mt-2"
           disabled={pending}
@@ -103,6 +123,8 @@ export function PaiementForm({
           id="notes"
           name="notes"
           placeholder="Référence chèque, etc."
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
           className="mt-2"
           disabled={pending}
         />
