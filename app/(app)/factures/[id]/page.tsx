@@ -43,7 +43,7 @@ export default async function FactureDetailPage({
   const { data: facture } = await supabase
     .from("factures_avec_solde")
     .select(
-      "id, numero, date_emission, montant_ht, montant_paye, solde, statut_paiement, anciennete_jours, livraison_id, client_id",
+      "id, numero, date_emission, montant_ht, montant_encaisse, montant_a_encaisser, solde, statut_paiement, anciennete_jours, livraison_id, client_id",
     )
     .eq("id", id)
     .maybeSingle();
@@ -183,10 +183,18 @@ export default async function FactureDetailPage({
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Encaissé</span>
-                <span className="font-medium">
-                  {formatEUR(Number(facture.montant_paye))}
+                <span className="font-medium text-emerald-700 dark:text-emerald-400">
+                  {formatEUR(Number(facture.montant_encaisse))}
                 </span>
               </div>
+              {Number(facture.montant_a_encaisser) > 0 ? (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">À encaisser</span>
+                  <span className="font-medium text-amber-700 dark:text-amber-400">
+                    {formatEUR(Number(facture.montant_a_encaisser))}
+                  </span>
+                </div>
+              ) : null}
               <hr className="my-2" />
               <div className="flex justify-between text-base">
                 <span>Solde restant</span>
@@ -234,12 +242,12 @@ export default async function FactureDetailPage({
       {Number(facture.solde) > 0 ? (
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Encaisser un paiement</CardTitle>
+            <CardTitle>Enregistrer un paiement</CardTitle>
           </CardHeader>
           <CardContent>
             <PaiementForm
               factureId={facture.id}
-              soldeRestant={Number(facture.solde)}
+              resteAEncaisser={Number(facture.solde)}
             />
           </CardContent>
         </Card>

@@ -38,30 +38,34 @@ export async function enregistrerPaiement(
     return { fieldErrors: { lignes: "Lignes invalides." } };
   }
 
-  // Verifie le solde restant
+  // Verifie que la somme saisie ne depasse pas le reste a couvrir
+  // (montant_ht - encaisse_actuel - a_encaisser_actuel)
   const { data: facture } = await supabase
     .from("factures_avec_solde")
-    .select("solde")
+    .select("montant_ht, montant_encaisse, montant_a_encaisser")
     .eq("id", parsed.data.facture_id)
     .maybeSingle();
 
   if (!facture) return { error: "Facture introuvable." };
 
+  const reste =
+    Number(facture.montant_ht) -
+    Number(facture.montant_encaisse) -
+    Number(facture.montant_a_encaisser);
   const totalSaisi = lignes.reduce((acc, l) => acc + l.montant, 0);
-  if (totalSaisi > Number(facture.solde) + 0.001) {
+  if (totalSaisi > reste + 0.001) {
     return {
       fieldErrors: {
-        montant: `Total ${totalSaisi.toFixed(2)} € > solde restant ${Number(facture.solde).toFixed(2)} €.`,
+        lignes: `Total ${totalSaisi.toFixed(2)} € > reste à couvrir ${reste.toFixed(2)} €.`,
       },
     };
   }
 
-  // Insere les paiements en bloc (PostgREST insert array est atomique)
   const rows = lignes.map((l) => ({
     facture_id: parsed.data.facture_id,
     montant: l.montant,
     mode: l.mode,
-    date_encaissement: parsed.data.date_encaissement,
+    date_encaissement: l.date_encaissement,
     notes: l.notes || null,
     encaisse_par: user.id,
   }));
@@ -79,8 +83,6 @@ export async function enregistrerPaiement(
 export async function supprimerPaiement(id: string) {
   const { supabase } = await requireRole("patron", "livreur");
 
-  // RLS arbitre : Patron toujours, Livreur si proprietaire ET < 24h
-  // (cf. migration 0007). Si refuse, on retourne une erreur claire.
   const { data: paiement } = await supabase
     .from("paiements")
     .select("facture_id")

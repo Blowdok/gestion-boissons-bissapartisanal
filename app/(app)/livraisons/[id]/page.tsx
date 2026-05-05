@@ -73,7 +73,7 @@ export default async function LivraisonDetailPage({
   // Recupere la facture eventuelle
   const { data: facture } = await supabase
     .from("factures_avec_solde")
-    .select("id, numero, montant_ht, montant_paye, solde, statut_paiement")
+    .select("id, numero, montant_ht, montant_encaisse, montant_a_encaisser, solde, statut_paiement")
     .eq("livraison_id", id)
     .maybeSingle();
 
@@ -239,8 +239,13 @@ export default async function LivraisonDetailPage({
                     Total : <strong>{formatEUR(Number(facture.montant_ht))}</strong>
                   </p>
                   <p className="text-muted-foreground">
-                    Encaissé : {formatEUR(Number(facture.montant_paye))}
+                    Encaissé : {formatEUR(Number(facture.montant_encaisse))}
                   </p>
+                  {Number(facture.montant_a_encaisser) > 0 ? (
+                    <p className="text-muted-foreground">
+                      À encaisser : {formatEUR(Number(facture.montant_a_encaisser))}
+                    </p>
+                  ) : null}
                   <p className="text-muted-foreground">
                     Solde : {formatEUR(Number(facture.solde))}
                   </p>

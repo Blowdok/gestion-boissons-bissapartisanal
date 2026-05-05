@@ -50,7 +50,7 @@ export default async function FacturesPage({
   let request = supabase
     .from("factures_avec_solde")
     .select(
-      "id, numero, date_emission, montant_ht, montant_paye, solde, statut_paiement, anciennete_jours, client_id, livraison_id",
+      "id, numero, date_emission, montant_ht, montant_encaisse, montant_a_encaisser, solde, statut_paiement, anciennete_jours, client_id, livraison_id",
     )
     .order("date_emission", { ascending: false })
     .limit(200);
@@ -149,6 +149,7 @@ export default async function FacturesPage({
               <TableHead className="text-right">Montant HT</TableHead>
               <TableHead className="pl-6">Mode</TableHead>
               <TableHead className="text-right">Encaissé</TableHead>
+              <TableHead className="text-right">À encaisser</TableHead>
               <TableHead className="text-right">Solde</TableHead>
               <TableHead>Statut</TableHead>
               <TableHead className="text-right">Ancienneté</TableHead>
@@ -179,8 +180,13 @@ export default async function FacturesPage({
                       return modes.map((m) => MODE_LABEL[m]).join(" + ");
                     })()}
                   </TableCell>
-                  <TableCell className="text-right text-muted-foreground">
-                    {formatEUR(Number(f.montant_paye))}
+                  <TableCell className="text-right text-emerald-700 dark:text-emerald-400">
+                    {formatEUR(Number(f.montant_encaisse))}
+                  </TableCell>
+                  <TableCell className="text-right text-amber-700 dark:text-amber-400">
+                    {Number(f.montant_a_encaisser) > 0
+                      ? formatEUR(Number(f.montant_a_encaisser))
+                      : "—"}
                   </TableCell>
                   <TableCell className="text-right font-medium">
                     {formatEUR(Number(f.solde))}
@@ -201,7 +207,7 @@ export default async function FacturesPage({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
                   Aucune facture pour ce filtre.
                 </TableCell>
               </TableRow>
