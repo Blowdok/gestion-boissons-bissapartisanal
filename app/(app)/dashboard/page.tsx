@@ -9,7 +9,7 @@ export default async function DashboardPage() {
     <PagePlaceholder
       title="Tableau de bord"
       phase="Phase 4"
-      description="CA du mois, dépenses, marge, comparatif M-1, top clients et top parfums."
+      description="CA du mois, dépenses, marge, comparatif M-1, top clients et top produits."
     />
   );
 }

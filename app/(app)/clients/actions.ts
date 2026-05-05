@@ -92,13 +92,13 @@ export async function upsertTarif(clientId: string, formData: FormData) {
   revalidatePath(`/clients/${clientId}`);
 }
 
-export async function deleteTarif(clientId: string, parfumId: string) {
+export async function deleteTarif(clientId: string, produitId: string) {
   const { supabase } = await requireRole("patron");
   const { error } = await supabase
     .from("tarifs_clients")
     .delete()
     .eq("client_id", clientId)
-    .eq("parfum_id", parfumId);
+    .eq("produit_id", produitId);
   if (error) throw new Error(error.message);
   revalidatePath(`/clients/${clientId}`);
 }

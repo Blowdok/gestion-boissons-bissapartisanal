@@ -22,7 +22,7 @@ import {
 import { formatEUR } from "@/lib/utils/format";
 import { upsertTarif, deleteTarif } from "../actions";
 
-type ParfumLigne = {
+type ProduitLigne = {
   id: string;
   nom: string;
   gamme: "bissapa" | "zandjabila";
@@ -31,7 +31,7 @@ type ParfumLigne = {
   prix_negocie: number | null;
 };
 
-const GAMME_LABEL: Record<ParfumLigne["gamme"], string> = {
+const GAMME_LABEL: Record<ProduitLigne["gamme"], string> = {
   bissapa: "Bissapa",
   zandjabila: "Zandjabila",
 };
@@ -39,18 +39,18 @@ const GAMME_LABEL: Record<ParfumLigne["gamme"], string> = {
 export function TarifsEditor({
   clientId,
   canWrite,
-  parfums,
+  produits,
 }: {
   clientId: string;
   canWrite: boolean;
-  parfums: ParfumLigne[];
+  produits: ProduitLigne[];
 }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Tarifs négociés</CardTitle>
         <CardDescription>
-          Prix appliqués à ce client. Si vide, le prix par défaut du parfum est
+          Prix appliqués à ce client. Si vide, le prix par défaut du produit est
           utilisé en livraison.
         </CardDescription>
       </CardHeader>
@@ -67,11 +67,11 @@ export function TarifsEditor({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {parfums.map((p) => (
+            {produits.map((p) => (
               <TarifRow
                 key={p.id}
                 clientId={clientId}
-                parfum={p}
+                produit={p}
                 canWrite={canWrite}
               />
             ))}
@@ -84,28 +84,28 @@ export function TarifsEditor({
 
 function TarifRow({
   clientId,
-  parfum,
+  produit,
   canWrite,
 }: {
   clientId: string;
-  parfum: ParfumLigne;
+  produit: ProduitLigne;
   canWrite: boolean;
 }) {
   const [value, setValue] = useState<string>(
-    parfum.prix_negocie != null ? parfum.prix_negocie.toFixed(2) : "",
+    produit.prix_negocie != null ? produit.prix_negocie.toFixed(2) : "",
   );
   const [pending, start] = useTransition();
   const dirty =
-    (parfum.prix_negocie ?? null) !==
+    (produit.prix_negocie ?? null) !==
     (value === "" ? null : Number.parseFloat(value));
 
   return (
     <TableRow>
-      <TableCell className="font-medium">{parfum.nom}</TableCell>
-      <TableCell className="text-muted-foreground">{GAMME_LABEL[parfum.gamme]}</TableCell>
-      <TableCell className="text-muted-foreground">{parfum.format}</TableCell>
+      <TableCell className="font-medium">{produit.nom}</TableCell>
+      <TableCell className="text-muted-foreground">{GAMME_LABEL[produit.gamme]}</TableCell>
+      <TableCell className="text-muted-foreground">{produit.format}</TableCell>
       <TableCell className="text-right text-muted-foreground">
-        {formatEUR(parfum.prix_defaut_ht)}
+        {formatEUR(produit.prix_defaut_ht)}
       </TableCell>
       <TableCell>
         {canWrite ? (
@@ -113,7 +113,7 @@ function TarifRow({
             action={(formData) => {
               const v = String(formData.get("prix_ht") ?? "").trim();
               if (v === "") return;
-              formData.set("parfum_id", parfum.id);
+              formData.set("produit_id", produit.id);
               start(() => upsertTarif(clientId, formData));
             }}
             className="flex items-center gap-2"
@@ -133,20 +133,20 @@ function TarifRow({
               {pending ? "…" : "Enregistrer"}
             </Button>
           </form>
-        ) : parfum.prix_negocie != null ? (
-          formatEUR(parfum.prix_negocie)
+        ) : produit.prix_negocie != null ? (
+          formatEUR(produit.prix_negocie)
         ) : (
           <span className="text-muted-foreground">— (par défaut)</span>
         )}
       </TableCell>
       {canWrite ? (
         <TableCell className="text-right">
-          {parfum.prix_negocie != null ? (
+          {produit.prix_negocie != null ? (
             <Button
               variant="ghost"
               size="icon-sm"
               disabled={pending}
-              onClick={() => start(() => deleteTarif(clientId, parfum.id))}
+              onClick={() => start(() => deleteTarif(clientId, produit.id))}
               aria-label="Supprimer le tarif"
             >
               <Trash2 className="size-4 text-destructive" />

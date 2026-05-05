@@ -34,8 +34,8 @@ export default async function ClientDetailPage({
 
   if (!client) notFound();
 
-  const { data: parfums } = await supabase
-    .from("parfums")
+  const { data: produits } = await supabase
+    .from("produits")
     .select("id, nom, gamme, format, prix_defaut_ht, actif")
     .eq("actif", true)
     .order("gamme")
@@ -43,10 +43,10 @@ export default async function ClientDetailPage({
 
   const { data: tarifs } = await supabase
     .from("tarifs_clients")
-    .select("parfum_id, prix_ht")
+    .select("produit_id, prix_ht")
     .eq("client_id", id);
 
-  const tarifsMap = new Map(tarifs?.map((t) => [t.parfum_id, Number(t.prix_ht)]) ?? []);
+  const tarifsMap = new Map(tarifs?.map((t) => [t.produit_id, Number(t.prix_ht)]) ?? []);
 
   return (
     <div>
@@ -125,8 +125,8 @@ export default async function ClientDetailPage({
         <TarifsEditor
           clientId={client.id}
           canWrite={canWrite}
-          parfums={
-            parfums?.map((p) => ({
+          produits={
+            produits?.map((p) => ({
               id: p.id,
               nom: p.nom,
               gamme: p.gamme as "bissapa" | "zandjabila",

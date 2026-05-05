@@ -9,7 +9,7 @@ export default async function ProductionPage() {
     <PagePlaceholder
       title="Production"
       phase="Phase 2"
-      description="Saisie des lots de production avec parfum, date, quantité et DLUO."
+      description="Saisie des lots de production avec produit, date, quantité et DLUO."
     />
   );
 }

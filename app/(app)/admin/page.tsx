@@ -9,7 +9,7 @@ export default async function AdminPage() {
     <PagePlaceholder
       title="Administration"
       phase="Phase 1 (suite)"
-      description="Gestion des utilisateurs (création, désactivation) et catalogue des parfums."
+      description="Gestion des utilisateurs (création, désactivation) et catalogue des produits."
     />
   );
 }

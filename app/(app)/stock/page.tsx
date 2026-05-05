@@ -9,7 +9,7 @@ export default async function StockPage() {
     <PagePlaceholder
       title="Stock"
       phase="Phase 2"
-      description="Vue temps réel par parfum et par lot. Alertes seuil et historique des mouvements."
+      description="Vue temps réel par produit et par lot. Alertes seuil et historique des mouvements."
     />
   );
 }

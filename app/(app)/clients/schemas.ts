@@ -16,7 +16,7 @@ export const clientSchema = z.object({
 export type ClientInput = z.infer<typeof clientSchema>;
 
 export const tarifSchema = z.object({
-  parfum_id: z.string().uuid(),
+  produit_id: z.string().uuid(),
   prix_ht: z.coerce.number().min(0, "Le prix doit être ≥ 0.").max(9999, "Prix trop élevé."),
 });
 
