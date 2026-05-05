@@ -141,10 +141,10 @@ export default async function FacturesPage({
               <TableHead>Date</TableHead>
               <TableHead>Client</TableHead>
               <TableHead className="text-right">Montant HT</TableHead>
+              <TableHead>Mode</TableHead>
               <TableHead className="text-right">Encaissé</TableHead>
               <TableHead className="text-right">Solde</TableHead>
               <TableHead>Statut</TableHead>
-              <TableHead>Mode</TableHead>
               <TableHead className="text-right">Ancienneté</TableHead>
             </TableRow>
           </TableHeader>
@@ -165,6 +165,13 @@ export default async function FacturesPage({
                   </TableCell>
                   <TableCell className="text-right">
                     {formatEUR(Number(f.montant_ht))}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {(() => {
+                      const modes = Array.from(modesParFacture.get(f.id) ?? []);
+                      if (modes.length === 0) return "—";
+                      return modes.map((m) => MODE_LABEL[m]).join(" + ");
+                    })()}
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">
                     {formatEUR(Number(f.montant_paye))}
@@ -188,13 +195,6 @@ export default async function FacturesPage({
                           ? "Partielle"
                           : "Impayée"}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {(() => {
-                      const modes = Array.from(modesParFacture.get(f.id) ?? []);
-                      if (modes.length === 0) return "—";
-                      return modes.map((m) => MODE_LABEL[m]).join(" + ");
-                    })()}
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">
                     {f.anciennete_jours} j
