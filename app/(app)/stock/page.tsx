@@ -21,8 +21,11 @@ const GAMME_LABEL: Record<string, string> = {
 };
 
 export default async function StockPage() {
-  const { profile, supabase } = await requireRole("patron", "fabrication", "livreur");
-  const canProduire = profile.role === "patron" || profile.role === "fabrication";
+  const { profile, supabase } = await requireRole("patron", "adjoint", "fabrication", "livreur");
+  const canProduire =
+    profile.role === "patron" ||
+    profile.role === "adjoint" ||
+    profile.role === "fabrication";
 
   const { data: stock } = await supabase
     .from("stock_par_produit")

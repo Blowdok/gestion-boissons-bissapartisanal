@@ -13,10 +13,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { ROLES, ROLE_LABELS } from "@/lib/auth/roles";
+import { ROLES, ROLE_LABELS, type Role } from "@/lib/auth/roles";
 import { createUtilisateur, type ActionState } from "./actions";
 
-export function UtilisateurForm() {
+export function UtilisateurForm({ currentUserRole }: { currentUserRole: Role }) {
+  // L'Adjoint ne peut creer que des Fabrication / Livreur
+  const rolesProposables: readonly Role[] =
+    currentUserRole === "adjoint"
+      ? (["fabrication", "livreur"] as Role[])
+      : ROLES;
   const [state, formAction, pending] = useActionState<ActionState | undefined, FormData>(
     createUtilisateur,
     undefined,
@@ -92,7 +97,7 @@ export function UtilisateurForm() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {ROLES.map((r) => (
+              {rolesProposables.map((r) => (
                 <SelectItem key={r} value={r}>
                   {ROLE_LABELS[r]}
                 </SelectItem>

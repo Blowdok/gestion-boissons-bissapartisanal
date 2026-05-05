@@ -20,7 +20,8 @@ import { ClaimButton } from "./claim-button";
 export const metadata = { title: "Ma tournée du jour" };
 
 export default async function TourneePage() {
-  const { profile, supabase, user } = await requireRole("patron", "livreur");
+  const { profile, supabase, user } = await requireRole("patron", "adjoint", "livreur");
+  const isSupervisor = profile.role === "patron" || profile.role === "adjoint";
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -50,10 +51,9 @@ export default async function TourneePage() {
   // Separe en deux groupes pour la livreur : a moi vs disponibles
   const aMoi = livraisons?.filter((l) => l.livreur_id === user.id) ?? [];
   const dispo = livraisons?.filter((l) => l.livreur_id === null) ?? [];
-  const livreurAutres =
-    profile.role === "patron"
-      ? livraisons?.filter((l) => l.livreur_id && l.livreur_id !== user.id) ?? []
-      : [];
+  const livreurAutres = isSupervisor
+    ? livraisons?.filter((l) => l.livreur_id && l.livreur_id !== user.id) ?? []
+    : [];
 
   const total = (livraisons ?? []).length;
 
@@ -89,7 +89,7 @@ export default async function TourneePage() {
         </Section>
       ) : null}
 
-      {profile.role === "patron" && total > 0 ? (
+      {isSupervisor && total > 0 ? (
         <>
           {dispo.length > 0 ? (
             <Section title="Non assignées" count={dispo.length}>

@@ -13,7 +13,7 @@ import { PageHeader } from "@/components/layout/page-header";
 export const metadata = { title: "Admin · Gestion Boissons" };
 
 export default async function AdminPage() {
-  const { supabase } = await requireRole("patron");
+  const { supabase } = await requireRole("patron", "adjoint");
 
   const [
     { count: nbUtilisateursActifs },

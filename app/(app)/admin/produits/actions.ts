@@ -23,7 +23,7 @@ export async function createProduit(
   _prev: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
-  const { supabase } = await requireRole("patron");
+  const { supabase } = await requireRole("patron", "adjoint");
 
   const parsed = produitSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
@@ -51,7 +51,7 @@ export async function updateProduit(
   _prev: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
-  const { supabase } = await requireRole("patron");
+  const { supabase } = await requireRole("patron", "adjoint");
 
   const parsed = produitSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
@@ -76,7 +76,7 @@ export async function updateProduit(
 }
 
 export async function toggleProduitActif(id: string, actif: boolean) {
-  const { supabase } = await requireRole("patron");
+  const { supabase } = await requireRole("patron", "adjoint");
   const { error } = await supabase.from("produits").update({ actif }).eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/admin/produits");

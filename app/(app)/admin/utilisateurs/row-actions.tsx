@@ -23,13 +23,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   toggleUtilisateurActif,
   envoyerResetPassword,
   changerRole,
@@ -44,6 +37,7 @@ export function UtilisateurActions({
   actif,
   role,
   isSelf,
+  currentUserRole,
 }: {
   id: string;
   nom: string;
@@ -51,12 +45,26 @@ export function UtilisateurActions({
   actif: boolean;
   role: Role;
   isSelf: boolean;
+  currentUserRole: Role;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmRole, setConfirmRole] = useState<Role | null>(null);
+
+  // Regles d'autorisation cote UI (le serveur revérifie via RLS + actions)
+  const isAdjointActor = currentUserRole === "adjoint";
+  // L'Adjoint ne peut pas toucher aux Patron, ni aux autres Adjoints
+  const targetIsProtected = isAdjointActor && (role === "patron" || role === "adjoint");
+  // L'Adjoint ne peut promouvoir que vers Fabrication / Livreur
+  const rolesProposables: Role[] = isAdjointActor
+    ? (["fabrication", "livreur"] as Role[]).filter((r) => r !== role)
+    : ROLES.filter((r) => r !== role);
+  const peutChangerRole = !isSelf && !targetIsProtected;
+  const peutToggleActif = !isSelf && !targetIsProtected;
+  const peutSupprimer = !isSelf && currentUserRole === "patron";
+  const peutResetPwd = actif && (currentUserRole === "patron" || !targetIsProtected);
 
   return (
     <>
@@ -69,7 +77,7 @@ export function UtilisateurActions({
           }
         />
         <DropdownMenuContent align="end">
-          {actif ? (
+          {peutResetPwd ? (
             <DropdownMenuItem
               onClick={() => {
                 if (!email) {
@@ -92,21 +100,19 @@ export function UtilisateurActions({
             </DropdownMenuItem>
           ) : null}
 
-          {!isSelf ? (
-            <>
-              {ROLES.filter((r) => r !== role).map((r) => (
+          {peutChangerRole
+            ? rolesProposables.map((r) => (
                 <DropdownMenuItem key={r} onClick={() => setConfirmRole(r)}>
                   <UserCog className="size-4" />
                   Changer en {ROLE_LABELS[r]}
                 </DropdownMenuItem>
-              ))}
-            </>
-          ) : null}
+              ))
+            : null}
 
           <DropdownMenuSeparator />
 
           {actif ? (
-            !isSelf ? (
+            peutToggleActif ? (
               <DropdownMenuItem
                 onClick={() => setConfirmDeactivate(true)}
                 disabled={pending}
@@ -115,7 +121,7 @@ export function UtilisateurActions({
                 Désactiver le compte
               </DropdownMenuItem>
             ) : null
-          ) : (
+          ) : peutToggleActif ? (
             <DropdownMenuItem
               onClick={() =>
                 start(async () => {
@@ -133,9 +139,9 @@ export function UtilisateurActions({
               <Power className="size-4" />
               Réactiver le compte
             </DropdownMenuItem>
-          )}
+          ) : null}
 
-          {!isSelf ? (
+          {peutSupprimer ? (
             <DropdownMenuItem onClick={() => setConfirmDelete(true)} disabled={pending}>
               <Trash2 className="size-4 text-destructive" />
               <span className="text-destructive">Supprimer définitivement</span>
@@ -144,7 +150,6 @@ export function UtilisateurActions({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Confirmation desactivation */}
       <AlertDialog open={confirmDeactivate} onOpenChange={setConfirmDeactivate}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -176,7 +181,6 @@ export function UtilisateurActions({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Confirmation suppression definitive */}
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -209,7 +213,6 @@ export function UtilisateurActions({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Confirmation changement de role */}
       <AlertDialog
         open={confirmRole !== null}
         onOpenChange={(o) => !o && setConfirmRole(null)}
@@ -223,6 +226,9 @@ export function UtilisateurActions({
               Les permissions seront mises à jour à la prochaine action.
               {confirmRole === "patron"
                 ? " Le compte aura accès à toutes les données financières et à l'administration."
+                : null}
+              {confirmRole === "adjoint"
+                ? " L'Adjoint pourra gérer les opérations et les utilisateurs sans accès à la finance."
                 : null}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -249,20 +255,6 @@ export function UtilisateurActions({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Pre-rendu du Select pour eviter de l'importer si pas necessaire */}
-      <Select disabled value="">
-        <SelectTrigger className="hidden">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {ROLES.map((r) => (
-            <SelectItem key={r} value={r}>
-              {r}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
     </>
   );
 }

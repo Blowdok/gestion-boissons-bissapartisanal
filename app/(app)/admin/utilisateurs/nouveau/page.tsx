@@ -7,7 +7,7 @@ import { UtilisateurForm } from "../utilisateur-form";
 export const metadata = { title: "Nouvel utilisateur · Admin" };
 
 export default async function NouveauUtilisateurPage() {
-  await requireRole("patron");
+  const { profile } = await requireRole("patron", "adjoint");
   return (
     <div>
       <Link
@@ -19,9 +19,13 @@ export default async function NouveauUtilisateurPage() {
       </Link>
       <PageHeader
         title="Nouvel utilisateur"
-        description="Créer un compte Patron, Fabrication ou Livreur."
+        description={
+          profile.role === "adjoint"
+            ? "Créer un compte Fabrication ou Livreur (les comptes Patron et Adjoint sont réservés au Patron)."
+            : "Créer un compte Patron, Adjoint, Fabrication ou Livreur."
+        }
       />
-      <UtilisateurForm />
+      <UtilisateurForm currentUserRole={profile.role} />
     </div>
   );
 }

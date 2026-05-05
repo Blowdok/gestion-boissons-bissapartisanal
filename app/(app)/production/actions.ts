@@ -23,7 +23,7 @@ export async function createLot(
   _prev: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
-  const { supabase, user } = await requireRole("patron", "fabrication");
+  const { supabase, user } = await requireRole("patron", "adjoint", "fabrication");
 
   const parsed = lotSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {

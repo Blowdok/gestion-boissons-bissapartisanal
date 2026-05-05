@@ -30,7 +30,7 @@ export async function createLivraison(
   _prev: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
-  const { supabase, user } = await requireRole("patron", "fabrication");
+  const { supabase, user } = await requireRole("patron", "adjoint", "fabrication");
 
   const parsed = livraisonSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
@@ -89,7 +89,7 @@ export async function updateLivraisonMetadata(
   _prev: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
-  const { supabase } = await requireRole("patron", "fabrication");
+  const { supabase } = await requireRole("patron", "adjoint", "fabrication");
 
   const parsed = editMetadataSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
@@ -133,7 +133,7 @@ export async function changerStatutLivraison(
   id: string,
   statut: "programmee" | "en_cours" | "livree" | "annulee",
 ) {
-  const { supabase, profile } = await requireRole("patron", "fabrication", "livreur");
+  const { supabase } = await requireRole("patron", "adjoint", "fabrication", "livreur");
 
   // Le Livreur ne peut updater que ses livraisons (RLS le verifie deja).
   // On laisse Postgres trancher.
@@ -159,7 +159,9 @@ export async function changerStatutLivraison(
   revalidatePath("/livraisons/tournee");
   revalidatePath("/factures");
   revalidatePath("/stock");
-  if (profile.role === "patron") revalidatePath("/dashboard");
+  // Le dashboard est consomme par Patron uniquement, mais on revalide toujours
+  // pour qu'il soit a jour quel que soit le role qui declenche l'action.
+  revalidatePath("/dashboard");
 }
 
 export async function annulerLivraison(id: string) {
@@ -171,6 +173,7 @@ export async function annulerLivraison(id: string) {
 
 export async function supprimerLivraison(id: string) {
   // Suppression DEFINITIVE (Patron uniquement, RLS).
+  // L'Adjoint ne peut PAS supprimer une livraison (operation rare et sensible).
   // Possible seulement si pas de facture (ON DELETE RESTRICT bloque sinon).
   const { supabase } = await requireRole("patron");
   const { error } = await supabase.from("livraisons").delete().eq("id", id);

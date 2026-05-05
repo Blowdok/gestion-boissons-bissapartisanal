@@ -13,7 +13,7 @@ export default async function EditLivraisonPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase } = await requireRole("patron", "fabrication");
+  const { supabase } = await requireRole("patron", "adjoint", "fabrication");
 
   const { data: livraison } = await supabase
     .from("livraisons")

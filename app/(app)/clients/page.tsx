@@ -23,11 +23,11 @@ export default async function ClientsPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { profile, supabase } = await requireRole("patron", "livreur");
+  const { profile, supabase } = await requireRole("patron", "adjoint", "livreur");
   const { q, inactifs } = await searchParams;
   const query = q?.trim() ?? "";
   const showInactifs = inactifs === "1";
-  const canWrite = profile.role === "patron";
+  const canWrite = profile.role === "patron" || profile.role === "adjoint";
 
   let request = supabase
     .from("clients")

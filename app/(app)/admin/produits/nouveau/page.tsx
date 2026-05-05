@@ -8,7 +8,7 @@ import { createProduit } from "../actions";
 export const metadata = { title: "Nouveau produit · Admin" };
 
 export default async function NouveauProduitPage() {
-  await requireRole("patron");
+  await requireRole("patron", "adjoint");
   return (
     <div>
       <Link

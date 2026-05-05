@@ -7,7 +7,7 @@ import { LotForm } from "../lot-form";
 export const metadata = { title: "Nouveau lot · Production" };
 
 export default async function NouveauLotPage() {
-  const { supabase } = await requireRole("patron", "fabrication");
+  const { supabase } = await requireRole("patron", "adjoint", "fabrication");
 
   const { data: produits } = await supabase
     .from("produits")

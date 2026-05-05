@@ -15,7 +15,7 @@ export default async function EditProduitPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase } = await requireRole("patron");
+  const { supabase } = await requireRole("patron", "adjoint");
 
   const { data: produit } = await supabase
     .from("produits")

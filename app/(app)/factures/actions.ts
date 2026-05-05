@@ -23,7 +23,7 @@ export async function enregistrerPaiement(
   _prev: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
-  const { supabase, user } = await requireRole("patron", "livreur");
+  const { supabase, user } = await requireRole("patron", "adjoint", "livreur");
 
   const parsed = paiementMultiSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
@@ -81,7 +81,7 @@ export async function enregistrerPaiement(
 }
 
 export async function supprimerPaiement(id: string) {
-  const { supabase } = await requireRole("patron", "livreur");
+  const { supabase } = await requireRole("patron", "adjoint", "livreur");
 
   const { data: paiement } = await supabase
     .from("paiements")

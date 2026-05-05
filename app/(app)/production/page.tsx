@@ -17,7 +17,7 @@ import { formatDate } from "@/lib/utils/format";
 export const metadata = { title: "Production · Gestion Boissons" };
 
 export default async function ProductionPage() {
-  const { supabase } = await requireRole("patron", "fabrication");
+  const { supabase } = await requireRole("patron", "adjoint", "fabrication");
 
   const { data: lots } = await supabase
     .from("lots")

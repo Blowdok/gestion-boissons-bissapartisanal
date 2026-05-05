@@ -81,10 +81,13 @@ export default async function LivraisonDetailPage({
   const isLivreurAssigne = livraison.livreur_id === user.id;
   const canChangeStatus =
     profile.role === "patron" ||
+    profile.role === "adjoint" ||
     profile.role === "fabrication" ||
     (profile.role === "livreur" && isLivreurAssigne);
   const canEditMetadata =
-    (profile.role === "patron" || profile.role === "fabrication") &&
+    (profile.role === "patron" ||
+      profile.role === "adjoint" ||
+      profile.role === "fabrication") &&
     statut !== "livree" &&
     statut !== "annulee";
 

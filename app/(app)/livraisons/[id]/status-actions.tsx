@@ -25,7 +25,7 @@ export function LivraisonStatusActions({
 }: {
   id: string;
   statut: StatutLivraison;
-  role: "patron" | "fabrication" | "livreur";
+  role: "patron" | "adjoint" | "fabrication" | "livreur";
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();

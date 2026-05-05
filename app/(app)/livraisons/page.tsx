@@ -32,8 +32,11 @@ export default async function LivraisonsPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { profile, supabase } = await requireRole("patron", "fabrication", "livreur");
-  const canCreate = profile.role === "patron" || profile.role === "fabrication";
+  const { profile, supabase } = await requireRole("patron", "adjoint", "fabrication", "livreur");
+  const canCreate =
+    profile.role === "patron" ||
+    profile.role === "adjoint" ||
+    profile.role === "fabrication";
   const { q, statut } = await searchParams;
 
   let request = supabase

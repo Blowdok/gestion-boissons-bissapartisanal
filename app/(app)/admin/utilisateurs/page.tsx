@@ -20,7 +20,7 @@ import { UtilisateurActions } from "./row-actions";
 export const metadata = { title: "Utilisateurs · Admin" };
 
 export default async function UtilisateursAdminPage() {
-  const { supabase, profile: currentProfile } = await requireRole("patron");
+  const { supabase, profile: currentProfile } = await requireRole("patron", "adjoint");
 
   // Profils via RLS-safe (Patron a tous les droits)
   const { data: profiles } = await supabase
@@ -114,6 +114,7 @@ export default async function UtilisateursAdminPage() {
                         actif={p.actif}
                         role={p.role as Role}
                         isSelf={isSelf}
+                        currentUserRole={currentProfile.role as Role}
                       />
                     </TableCell>
                   </TableRow>

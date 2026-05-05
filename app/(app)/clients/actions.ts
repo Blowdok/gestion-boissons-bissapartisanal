@@ -23,7 +23,7 @@ export async function createClient(
   _prev: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
-  const { supabase } = await requireRole("patron");
+  const { supabase } = await requireRole("patron", "adjoint");
 
   const raw = Object.fromEntries(formData.entries());
   const parsed = clientSchema.safeParse(raw);
@@ -48,7 +48,7 @@ export async function updateClient(
   _prev: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
-  const { supabase } = await requireRole("patron");
+  const { supabase } = await requireRole("patron", "adjoint");
 
   const raw = Object.fromEntries(formData.entries());
   const parsed = clientSchema.safeParse(raw);
@@ -69,7 +69,7 @@ export async function updateClient(
 }
 
 export async function toggleClientActif(id: string, actif: boolean) {
-  const { supabase } = await requireRole("patron");
+  const { supabase } = await requireRole("patron", "adjoint");
   const { error } = await supabase.from("clients").update({ actif }).eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/clients");
@@ -77,7 +77,7 @@ export async function toggleClientActif(id: string, actif: boolean) {
 }
 
 export async function upsertTarif(clientId: string, formData: FormData) {
-  const { supabase } = await requireRole("patron");
+  const { supabase } = await requireRole("patron", "adjoint");
 
   const parsed = tarifSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
@@ -93,7 +93,7 @@ export async function upsertTarif(clientId: string, formData: FormData) {
 }
 
 export async function deleteTarif(clientId: string, produitId: string) {
-  const { supabase } = await requireRole("patron");
+  const { supabase } = await requireRole("patron", "adjoint");
   const { error } = await supabase
     .from("tarifs_clients")
     .delete()

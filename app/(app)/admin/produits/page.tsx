@@ -19,7 +19,7 @@ import { ProduitActions } from "./row-actions";
 export const metadata = { title: "Catalogue produits · Admin" };
 
 export default async function ProduitsAdminPage() {
-  const { supabase } = await requireRole("patron");
+  const { supabase } = await requireRole("patron", "adjoint");
 
   const { data: produits } = await supabase
     .from("produits")
