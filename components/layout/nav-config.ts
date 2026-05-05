@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  Package,
   Boxes,
   Factory,
   Users,
@@ -24,6 +25,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/dashboard",
     label: "Tableau de bord",
     icon: LayoutDashboard,
+    roles: ["patron"],
+  },
+  {
+    href: "/admin/produits",
+    label: "Produits",
+    icon: Package,
     roles: ["patron"],
   },
   {
