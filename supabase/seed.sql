@@ -5,16 +5,16 @@
 -- Execute par `supabase db reset`. Les utilisateurs sont crees via
 -- scripts/seed-users.mjs (API admin Supabase, pas SQL).
 
--- Gamme Bissapa (bouteilles 50cl) ------------------------------------------
+-- Gamme Bissapa (bouteilles 25cl) ------------------------------------------
 insert into public.parfums (nom, gamme, format, seuil_alerte, prix_defaut_ht, actif) values
-  ('Bissap Nature',      'bissapa', '50cl', 50, 2.50, true),
-  ('Bissap Menthe',      'bissapa', '50cl', 50, 2.50, true),
-  ('Bissap Framboise',   'bissapa', '50cl', 50, 2.50, true),
-  ('Bissap Litchi',      'bissapa', '50cl', 50, 2.50, true),
-  ('Bissap Melon',       'bissapa', '50cl', 50, 2.50, true),
-  ('Bissap Passion',     'bissapa', '50cl', 50, 2.50, true),
-  ('Ananas & Coco',      'bissapa', '50cl', 50, 2.50, true),
-  ('Ananas & Gingembre', 'bissapa', '50cl', 50, 2.50, true)
+  ('Bissap Nature',      'bissapa', '25cl', 50, 2.50, true),
+  ('Bissap Menthe',      'bissapa', '25cl', 50, 2.50, true),
+  ('Bissap Framboise',   'bissapa', '25cl', 50, 2.50, true),
+  ('Bissap Litchi',      'bissapa', '25cl', 50, 2.50, true),
+  ('Bissap Melon',       'bissapa', '25cl', 50, 2.50, true),
+  ('Bissap Passion',     'bissapa', '25cl', 50, 2.50, true),
+  ('Ananas & Coco',      'bissapa', '25cl', 50, 2.50, true),
+  ('Ananas & Gingembre', 'bissapa', '25cl', 50, 2.50, true)
 on conflict (nom) do nothing;
 
 -- Gamme Zandjabila (GingerShot 60ml) ---------------------------------------
