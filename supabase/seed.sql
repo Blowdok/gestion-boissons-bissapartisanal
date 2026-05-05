@@ -28,4 +28,4 @@ insert into public.clients (raison_sociale, contact, email, telephone, adresse, 
   ('Le Marche Creole',     'Marie Hoarau',   'contact@marche-creole.re',  '0262 12 34 56', '12 rue de Paris',         'Saint-Denis',     '97400', '30 jours fin de mois', true),
   ('Restaurant Ti Boucan', 'Jean Payet',     'jean@tiboucan.re',          '0262 78 90 12', 'Plage des Roches Noires', 'Saint-Gilles',    '97434', 'Comptant',             true),
   ('Epicerie Vavangue',    'Lea Rivière',    'lea@vavangue.re',           '0262 45 67 89', '5 chemin des Letchis',    'Le Tampon',       '97430', '15 jours',             true)
-on conflict do nothing;
+on conflict (raison_sociale) do nothing;
