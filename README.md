@@ -184,10 +184,108 @@ netlify.toml                     # Config déploiement Netlify
 
 ---
 
+## 🏢 Comptes infrastructure du Patron
+
+> **Important** : l'application est actuellement déployée sur l'infrastructure
+> du développeur (comptes Supabase / Netlify / Resend de Blowdok). Pour la
+> mise en service définitive, **le Patron Bissapa doit créer ses propres
+> comptes** afin d'être propriétaire de ses données et de payer directement
+> les éventuels frais de service.
+>
+> Cette migration se fait **avant** la bascule des données de test
+> ([section suivante](#-passage-en-production--remplacer-les-données-de-test)).
+
+### Pourquoi le Patron doit avoir ses propres comptes
+
+| Raison | Détail |
+|---|---|
+| 🛡️ Propriété des données | Toutes les factures, clients, finances appartiennent à Bissapa, pas au prestataire |
+| 💳 Facturation directe | Au-delà des plans gratuits, Bissapa paie directement (pas de re-facturation) |
+| 🔒 Conformité | Le Patron reste seul responsable du traitement RGPD de ses clients |
+| 🔑 Continuité | Si le prestataire change, l'infra reste en place sans interruption |
+
+### A. Compte Supabase (base de données + auth)
+
+**Plan gratuit** suffisant pour démarrer (jusqu'à 500 Mo de DB, 50 000 utilisateurs auth, 1 Go Storage).
+
+1. Créer un compte sur https://supabase.com avec l'email d'Emmanuel
+2. **New project** → nom : `bissapa-prod` → région : **Europe (Paris ou Frankfurt)** ⚠️ pour le RGPD
+3. Choisir un mot de passe DB fort (à stocker dans le gestionnaire de mots de passe d'Emmanuel)
+4. Une fois le projet créé, récupérer dans **Settings → API** :
+   - `Project URL` → futur `NEXT_PUBLIC_SUPABASE_URL`
+   - `anon public` key → futur `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `service_role` key → futur `SUPABASE_SERVICE_ROLE_KEY` (⚠️ ultra-sensible)
+5. **Initialiser le schéma** :
+   - **SQL Editor** → coller à la suite chacun des fichiers du dossier
+     `supabase/migrations/` **dans l'ordre numérique** (`0001_*.sql`, puis
+     `0002_*.sql`, etc.) → exécuter chacun
+   - Coller `supabase/seed.sql` → exécuter (insère les 10 produits)
+6. **Créer le bucket Storage** :
+   - **Storage → New bucket** → nom : `justificatifs` → **Private** (non public)
+7. **Configurer Auth** :
+   - **Authentication → URL Configuration**
+   - Site URL : URL prod du Patron (ex: `https://app.bissapa.fr`)
+   - Redirect URLs : ajouter `https://app.bissapa.fr/**`
+8. **Créer les utilisateurs** : depuis le dashboard, **Authentication → Users
+   → Add user** (au moins le compte Patron pour la première connexion). Les
+   autres comptes seront créés ensuite via l'app (Admin → Utilisateurs).
+
+### B. Compte Netlify (hébergement de l'app)
+
+**Plan gratuit** suffisant (100 Go bande passante / mois, builds illimités).
+
+1. Créer un compte sur https://netlify.com avec l'email d'Emmanuel
+2. **Add new site → Import an existing project**
+3. Connecter GitHub et choisir le repo `gestion-boissons-bissapartisanal`
+   - Le repo peut rester chez Blowdok et donner accès en lecture à Emmanuel,
+     OU être transféré dans son organisation GitHub
+4. Build settings : **Next.js** détecté automatiquement (rien à modifier, le
+   `netlify.toml` est dans le repo)
+5. **Avant de déployer**, ajouter toutes les variables d'environnement
+   ([liste complète plus haut](#variables-denvironnement-requises)) avec les
+   **valeurs du nouveau projet Supabase** créé à l'étape A
+6. Premier déploiement → tester sur l'URL `https://<random>.netlify.app`
+7. **Domain settings → Add custom domain** → nom de domaine définitif du
+   Patron (ex: `app.bissapa.fr`)
+   - Suivre les instructions DNS chez le registrar du Patron (CNAME ou A record)
+   - HTTPS automatique via Let's Encrypt
+8. Mettre à jour `NEXT_PUBLIC_APP_URL` avec le domaine définitif puis
+   **Trigger deploy → Clear cache and deploy site**
+
+### C. Compte Resend (envoi des factures par email)
+
+**Plan gratuit** : 100 emails / jour, 3 000 / mois → largement suffisant pour Bissapa.
+
+1. Créer un compte sur https://resend.com avec l'email d'Emmanuel
+2. **API Keys → Create API Key** → nom : `bissapa-prod` → permission
+   **Sending access** → copier la clé (commence par `re_…`)
+3. **Domains → Add Domain** → entrer le nom de domaine du Patron (ex:
+   `bissapa.fr`)
+4. Ajouter les **enregistrements DNS** affichés (SPF + DKIM + MX optionnel)
+   chez le registrar
+5. Cliquer **Verify** une fois la propagation DNS faite (qq minutes à 1h)
+6. Une fois vérifié, ajouter dans Netlify :
+   - `RESEND_API_KEY=re_xxxxxxxxxxxx`
+   - `RESEND_FROM=Le Bissap Artisanal <facture@bissapa.fr>`
+7. **Clear cache and deploy site** → tester l'envoi d'une facture depuis
+   l'app pour vérifier la réception
+
+### D. (Optionnel) Compte GitHub
+
+Si Emmanuel veut être **propriétaire du code source** (recommandé pour la
+pérennité), demander le **transfert du repo** ou un **fork** dans son
+organisation GitHub. Sinon le code reste chez Blowdok et Emmanuel a accès
+en lecture.
+
+---
+
 ## 🚀 Passage en production — Remplacer les données de test
 
 Cette section décrit la **bascule unique** à faire au moment de mettre l'app
-en service réel chez Bissapa. À faire **dans l'ordre**, en une seule séance.
+en service réel chez Bissapa, **après** que le Patron ait créé ses propres
+comptes infra ([section précédente](#-comptes-infrastructure-du-patron)).
+
+À faire **dans l'ordre**, en une seule séance.
 
 ### 1. Compléter les infos entreprise manquantes
 
