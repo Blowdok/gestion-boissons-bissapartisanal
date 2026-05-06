@@ -8,13 +8,19 @@ production de boissons.
 **Zandjabila** (2 GingerShot en flacons 60ml). Extensible via le module Admin.
 
 **Fonctionnalités principales** :
-- Production : saisie de lots avec DLUO, gestion des pertes (casse, péremption)
-- Stock : vue temps réel par produit, alertes sous seuil, FIFO automatique sur DLUO
+- Production : saisie de lots avec DLUO, **traçabilité ingrédients** (fleur
+  de bissap, sucre, arôme + ingrédients naturels selon la saveur), gestion
+  des pertes (casse, péremption)
+- Stock : vue temps réel par produit (produite / livrée / perdue / disponible),
+  alertes sous seuil, FIFO automatique sur DLUO
 - Clients B2B : annuaire, tarifs personnalisés par produit
-- Livraisons : création, tournée du jour assignée au livreur, statuts
+- Livraisons : création, tournée du jour assignée au livreur, statuts,
+  édition des métadonnées tant que la livraison est prévue
 - Facturation : génération automatique à la livraison, numérotation séquentielle
-  `FAC-YYYY-NNNNN`, mentions légales art. 293 B CGI
-- PDF : Bon de livraison + Facture (templates react-pdf)
+  `FAC-YYYY-NNNNN`, mentions légales art. 293 B CGI, état de règlement
+  affiché dans le PDF (acquittée / partiel / reste à payer)
+- PDF : Bon de livraison + Facture avec logo Bissapa intégré (templates
+  react-pdf)
 - Email transactionnel : envoi automatique de la facture au client (Resend)
 - Paiements : multi-modes (espèces, virement, chèque, carte), multi-dates
   (chèques post-datés gérés comme paiements promis)
@@ -146,8 +152,10 @@ lib/
   └── config/                    # Config entreprise (Bissapa)
 
 supabase/
-  ├── migrations/                # 14 migrations SQL versionnées
-  └── seed.sql                   # 10 produits + 3 clients fictifs
+  ├── migrations/                # 15 migrations SQL versionnées
+  ├── seed.sql                   # Dev : 10 produits + 3 clients fictifs
+  ├── seed-production.sql        # Prod : uniquement les 10 produits
+  └── cleanup-test-data.sql      # Purge données opérationnelles si besoin
 
 tests/unit/                      # Tests Vitest (FIFO, répartition, stock)
 scripts/                         # Helpers Node.js (seed-users, check-*, etc.)
@@ -168,7 +176,8 @@ netlify.toml                     # Config déploiement Netlify
 - ✅ **Phase 1** — Auth + Layout + Module Clients + Module Admin
   (utilisateurs, catalogue produits)
 - ✅ **Phase 2** — Stock & Production : lots avec DLUO, vue stock temps réel,
-  alertes seuil, saisie de pertes, vues SQL `stock_par_lot` / `stock_par_produit`
+  alertes seuil, saisie de pertes, vues SQL `stock_par_lot` / `stock_par_produit`,
+  traçabilité des ingrédients (table `lot_ingredients` + vue `lots_par_ingredient`)
 - ✅ **Phase 3** — Livraisons & Facturation : trigger FIFO, facture auto,
   numérotation séquentielle, génération PDF (BL + Facture), envoi email Resend,
   multi-paiements avec dates (chèques post-datés)
@@ -176,7 +185,9 @@ netlify.toml                     # Config déploiement Netlify
   KPIs CA/Dépenses/Marge, répartition 50/30/20, graphique 12 mois, top 5
   clients & produits, export CSV comptable
 - ✅ **Bonus** — Rôle Adjoint (Patron temporaire), dark mode, badges colorés,
-  sidebar sticky avec scroll interne, suffixe `(adj)` sur les Adjoints
+  sidebar sticky avec scroll interne, suffixe `(adj)` sur les Adjoints,
+  logo Bissapa intégré aux PDFs, favicon hibiscus, branding « Le Bissap
+  Artisanal · Gestion Société »
 - 🟡 **Phase 6** — Mise en production : déploiement Netlify ✅ sur
   `https://gestion-bissap-artisanal.blowdok.fr` (sous-domaine provisoire).
   Reste à faire : domaine définitif + vérification Resend, recette client,
@@ -215,6 +226,18 @@ netlify.toml                     # Config déploiement Netlify
 ### A. Compte Supabase (base de données + auth)
 
 **Plan gratuit** suffisant pour démarrer (jusqu'à 500 Mo de DB, 50 000 utilisateurs auth, 1 Go Storage).
+
+> 💡 **Recommandation : créer 2 projets Supabase chez Emmanuel**
+>
+> | Projet | Usage | Seed à appliquer |
+> |---|---|---|
+> | `bissapa-staging` | Formation, recette, démo, tests futurs (V2) | `seed.sql` (avec clients fictifs) |
+> | `bissapa-prod` | Production réelle | `seed-production.sql` (catalogue seul) |
+>
+> Avantage : la prod démarre **vraiment vide**, aucun risque d'oublier de purger
+> les données de formation. Le projet staging restera utile pour tester les
+> futures évolutions sans toucher aux vraies données. Les deux projets sont
+> gratuits.
 
 1. Créer un compte sur https://supabase.com avec l'email d'Emmanuel
 2. **New project** → nom : `bissapa-prod` → région : **Europe (Paris ou Frankfurt)** ⚠️ pour le RGPD
