@@ -25,8 +25,9 @@ export function AppShell({ profile, email, children }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen flex-1 flex-col bg-muted/20 md:flex-row">
-      {/* Sidebar desktop */}
-      <aside className="hidden w-60 shrink-0 border-r bg-background md:block">
+      {/* Sidebar desktop : sticky top-0 + h-screen pour rester visible
+          quand la page scroll. Le scroll interne se fait sur la <nav>. */}
+      <aside className="hidden w-60 shrink-0 border-r bg-background md:sticky md:top-0 md:block md:h-screen">
         <SidebarContent
           profile={profile}
           email={email}
