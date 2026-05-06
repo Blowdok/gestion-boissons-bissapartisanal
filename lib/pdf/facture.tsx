@@ -34,16 +34,28 @@ export function FacturePDF({ data }: { data: PdfFactureData }) {
         <View style={pdfStyles.headerRow}>
           <View style={pdfStyles.emetteurBlock}>
             <Text style={pdfStyles.emetteurNom}>{ENTREPRISE.raison_sociale}</Text>
+            {ENTREPRISE.gerant ? (
+              <Text style={pdfStyles.emetteurLine}>
+                {ENTREPRISE.gerant} — Gérant
+              </Text>
+            ) : null}
             {ENTREPRISE.adresse !== "À renseigner" ? (
-              <Text style={pdfStyles.emetteurLine}>{ENTREPRISE.adresse}</Text>
+              <Text style={[pdfStyles.emetteurLine, { marginTop: 3 }]}>
+                {ENTREPRISE.adresse}
+              </Text>
             ) : null}
             <Text style={pdfStyles.emetteurLine}>
               {ENTREPRISE.code_postal} {ENTREPRISE.ville}
             </Text>
             <Text style={pdfStyles.emetteurLine}>{ENTREPRISE.pays}</Text>
-            {ENTREPRISE.telephone ? (
+            {ENTREPRISE.telephone_mobile ? (
+              <Text style={[pdfStyles.emetteurLine, { marginTop: 3 }]}>
+                {ENTREPRISE.telephone_mobile}
+              </Text>
+            ) : null}
+            {ENTREPRISE.telephone_fixe ? (
               <Text style={pdfStyles.emetteurLine}>
-                Tél. {ENTREPRISE.telephone}
+                {ENTREPRISE.telephone_fixe}
               </Text>
             ) : null}
             {ENTREPRISE.email ? (
