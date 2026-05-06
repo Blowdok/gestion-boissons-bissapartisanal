@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, Pencil } from "lucide-react";
+import { ArrowLeft, Download, ExternalLink, Pencil } from "lucide-react";
 import { requireRole } from "@/lib/auth/guards";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -116,6 +116,15 @@ export default async function LivraisonDetailPage({
             <Badge className={`mr-2 ${STATUT_BADGE_CLASS[statut]}`}>
               {STATUT_LABEL[statut]}
             </Badge>
+            <a
+              href={`/api/pdf/bon-livraison/${livraison.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: "outline" })}
+            >
+              <Download className="size-4" />
+              Bon de livraison
+            </a>
             {canEditMetadata ? (
               <Link
                 href={`/livraisons/${livraison.id}/edit`}

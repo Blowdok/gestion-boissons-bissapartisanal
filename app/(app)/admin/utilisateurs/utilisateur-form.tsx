@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { ROLES, ROLE_LABELS, type Role } from "@/lib/auth/roles";
+import { ROLE_LABELS, type Role } from "@/lib/auth/roles";
 import { createUtilisateur, type ActionState } from "./actions";
 
 export function UtilisateurForm({ currentUserRole }: { currentUserRole: Role }) {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, Download, ExternalLink } from "lucide-react";
 import { requireRole } from "@/lib/auth/guards";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -110,13 +110,24 @@ export default async function FactureDetailPage({
           </>
         }
         actions={
-          <Link
-            href={`/livraisons/${facture.livraison_id}`}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            <ExternalLink className="size-4" />
-            Livraison liée
-          </Link>
+          <>
+            <a
+              href={`/api/pdf/facture/${facture.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: "default" })}
+            >
+              <Download className="size-4" />
+              Télécharger PDF
+            </a>
+            <Link
+              href={`/livraisons/${facture.livraison_id}`}
+              className={buttonVariants({ variant: "outline" })}
+            >
+              <ExternalLink className="size-4" />
+              Livraison liée
+            </Link>
+          </>
         }
       />
 
