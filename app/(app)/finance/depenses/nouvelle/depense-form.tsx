@@ -33,7 +33,7 @@ export function DepenseForm() {
   const [filename, setFilename] = useState<string>("");
 
   return (
-    <form action={formAction} className="max-w-2xl space-y-6" encType="multipart/form-data">
+    <form action={formAction} className="max-w-2xl space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="date">Date *</Label>
