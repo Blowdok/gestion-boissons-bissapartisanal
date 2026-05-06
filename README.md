@@ -181,3 +181,94 @@ netlify.toml                     # Config déploiement Netlify
 | Patron | `patron@bissapa.test` | `Patron2026!` |
 | Production | `fabrication@bissapa.test` | `Fabrication2026!` |
 | Livreur | `livreur@bissapa.test` | `Livreur2026!` |
+
+---
+
+## 🚀 Passage en production — Remplacer les données de test
+
+Cette section décrit la **bascule unique** à faire au moment de mettre l'app
+en service réel chez Bissapa. À faire **dans l'ordre**, en une seule séance.
+
+### 1. Compléter les infos entreprise manquantes
+
+Ouvrir Netlify → **Project configuration → Environment variables** et ajouter
+les variables liées au RIB pour qu'il apparaisse sur les factures PDF :
+
+| Variable | Valeur à demander au Patron |
+|---|---|
+| `NEXT_PUBLIC_ENTREPRISE_IBAN` | IBAN du compte pro (FR76 …) |
+| `NEXT_PUBLIC_ENTREPRISE_BIC` | Code BIC/SWIFT |
+| `NEXT_PUBLIC_ENTREPRISE_BANQUE` | Nom de la banque (ex: « Crédit Mutuel ») |
+
+Toutes les autres infos entreprise sont déjà dans `lib/config/entreprise.ts`
+(raison sociale, SIRET, adresse, téléphones, email). Les modifier là si
+besoin, sinon laisser les défauts.
+
+> ⚠️ Les variables `NEXT_PUBLIC_*` sont **figées au build**. Après les avoir
+> ajoutées : **Trigger deploy → Clear cache and deploy site**.
+
+### 2. Créer le vrai compte Patron (Emmanuel)
+
+1. Se connecter en tant que `patron@bissapa.test`
+2. Aller dans **Admin → Utilisateurs → + Nouvel utilisateur**
+3. Renseigner les infos d'Emmanuel (nom, email réel, rôle = **Patron**)
+4. Mot de passe temporaire — Emmanuel le changera à sa première connexion via
+   « Mot de passe oublié » sur l'écran de login
+5. **Se déconnecter** et se reconnecter avec le compte d'Emmanuel pour vérifier
+   qu'il a bien tous les accès
+
+### 3. Créer les vrais comptes opérateurs (le cas échéant)
+
+Toujours depuis **Admin → Utilisateurs**, créer les comptes :
+- **Adjoint(s)** si Emmanuel veut désigner un Patron de remplacement
+- **Production** : 1 compte par fabricant
+- **Livreur / Vendeur** : 1 compte par tournée
+
+### 4. Désactiver les 3 comptes de test
+
+Depuis le compte d'Emmanuel, **Admin → Utilisateurs** :
+- Désactiver `patron@bissapa.test`, `fabrication@bissapa.test`,
+  `livreur@bissapa.test` (toggle « Actif »)
+
+> Pourquoi désactiver et pas supprimer : conserve l'audit / traçabilité des
+> actions passées en mode test. Une fois en prod, ces comptes ne pourront
+> plus se connecter mais leur historique reste lisible.
+
+### 5. Purger les données opérationnelles de test
+
+Si tu as fait des saisies de test (lots, livraisons, factures, dépenses)
+pendant la recette, **vide la base** avant le démarrage réel pour repartir à
+zéro :
+
+1. Ouvrir **Supabase Dashboard → ton projet → SQL Editor**
+2. Coller le contenu du fichier [`supabase/cleanup-test-data.sql`](./supabase/cleanup-test-data.sql)
+3. Exécuter (`Ctrl+Enter`)
+4. Vérifier la sortie finale : seul `produits` doit rester à 10, tout le
+   reste à 0
+
+Ce script :
+- supprime les 3 clients fictifs (`Le Marché Créole`, `Ti Boucan`, `Vavangue`)
+- vide livraisons + factures + paiements + dépenses + lots + mouvements
+- réinitialise la séquence des n° de facture (repart à `FAC-AAAA-00001`)
+- **conserve** le catalogue produits (les 10 vrais Bissapa + Zandjabila)
+
+### 6. Configurer Resend en mode prod (envoi des factures par email)
+
+Tant que le domaine n'est pas vérifié chez Resend, l'envoi reste en mode
+test → seuls les emails vers `leconstantbillal@gmail.com` partent.
+
+Dès qu'Emmanuel fournit son nom de domaine définitif (ex: `bissapa.fr`) :
+1. Resend Dashboard → **Domains → Add Domain** → suivre les DNS (SPF + DKIM)
+2. Une fois vérifié, mettre à jour la variable Netlify
+   `RESEND_FROM=Le Bissap Artisanal <facture@bissapa.fr>`
+3. **Clear cache and deploy site**
+
+### 7. Vérifications finales avant remise au client
+
+- [ ] PDF facture vierge téléchargé : RIB visible, SIRET correct, mentions OK
+- [ ] Email de reset password fonctionne (lien vers le bon domaine)
+- [ ] Compte Emmanuel actif, comptes `.test` désactivés
+- [ ] Base purgée (script `cleanup-test-data.sql` exécuté)
+- [ ] Récupération du logo Bissapa pour les PDFs (optionnel — à intégrer
+      dans `lib/pdf/styles.ts` ou en haut des templates)
+- [ ] PV de recette signé par Emmanuel
