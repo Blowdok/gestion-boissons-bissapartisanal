@@ -140,19 +140,6 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {/* Graphique 12 mois */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Évolution CA / Dépenses (12 derniers mois)</CardTitle>
-          <CardDescription>
-            Encaissements (vert) vs dépenses (rouge) par mois
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CaChart data={chartData} />
-        </CardContent>
-      </Card>
-
       {/* Repartition 50/30/20 */}
       <Card className="mb-6">
         <CardHeader>
@@ -188,6 +175,19 @@ export default async function DashboardPage() {
               />
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Graphique 12 mois */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Évolution CA / Dépenses (12 derniers mois)</CardTitle>
+          <CardDescription>
+            Encaissements (vert) vs dépenses (rouge) par mois
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CaChart data={chartData} />
         </CardContent>
       </Card>
 
