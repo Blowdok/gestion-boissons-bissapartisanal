@@ -172,7 +172,7 @@ export function FacturePDF({ data }: { data: PdfFactureData }) {
         <Text style={pdfStyles.mentionTva}>{ENTREPRISE.mention_tva}</Text>
         {aDesPaiements && data.statut_paiement !== "paye" ? (
           <Text style={pdfStyles.mentionTva}>
-            Cette facture a fait l'objet d'un règlement partiel.
+            Cette facture a fait l&apos;objet d&apos;un règlement partiel.
           </Text>
         ) : null}
 

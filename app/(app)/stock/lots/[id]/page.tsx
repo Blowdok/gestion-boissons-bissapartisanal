@@ -21,6 +21,10 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/page-header";
 import { formatDate, formatDateTime } from "@/lib/utils/format";
 import { joursAvantDluo } from "@/lib/domain/stock";
+import {
+  INGREDIENT_LABELS,
+  type Ingredient,
+} from "@/lib/domain/ingredients";
 
 export const metadata = { title: "Lot · Stock" };
 
@@ -66,18 +70,26 @@ export default async function LotDetailPage({
 
   const produit = Array.isArray(lot.produits) ? lot.produits[0] : lot.produits;
 
-  const [{ data: stock }, { data: mouvements }] = await Promise.all([
-    supabase
-      .from("stock_par_lot")
-      .select("qte_livree, qte_perdue, qte_disponible, dluo_passee")
-      .eq("lot_id", id)
-      .maybeSingle(),
-    supabase
-      .from("mouvements_stock")
-      .select("id, type, qte, motif, notes, created_at")
-      .eq("lot_id", id)
-      .order("created_at", { ascending: false }),
-  ]);
+  const [{ data: stock }, { data: mouvements }, { data: ingredients }] =
+    await Promise.all([
+      supabase
+        .from("stock_par_lot")
+        .select("qte_livree, qte_perdue, qte_disponible, dluo_passee")
+        .eq("lot_id", id)
+        .maybeSingle(),
+      supabase
+        .from("mouvements_stock")
+        .select("id, type, qte, motif, notes, created_at")
+        .eq("lot_id", id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("lot_ingredients")
+        .select("nom, date_peremption")
+        .eq("lot_id", id)
+        .order("nom"),
+    ]);
+
+  const aujourdhui = new Date().toISOString().slice(0, 10);
 
   return (
     <div>
@@ -155,6 +167,47 @@ export default async function LotDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      {ingredients && ingredients.length > 0 ? (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Ingrédients utilisés</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Ingrédient</TableHead>
+                  <TableHead>Date de péremption</TableHead>
+                  <TableHead className="text-right">État</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {ingredients.map((ing) => {
+                  const perimeAuLotProduit = ing.date_peremption < aujourdhui;
+                  return (
+                    <TableRow key={ing.nom}>
+                      <TableCell className="font-medium">
+                        {INGREDIENT_LABELS[ing.nom as Ingredient] ?? ing.nom}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {formatDate(ing.date_peremption)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {perimeAuLotProduit ? (
+                          <Badge variant="destructive">Périmé</Badge>
+                        ) : (
+                          <Badge variant="secondary">OK</Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {lot.notes ? (
         <Card className="mt-6">
