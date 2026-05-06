@@ -23,11 +23,21 @@ export default async function ClientsPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { profile, supabase } = await requireRole("patron", "adjoint", "livreur");
+  // Production peut consulter les clients en lecture pour preparer les commandes
+  const { profile, supabase } = await requireRole(
+    "patron",
+    "adjoint",
+    "livreur",
+    "fabrication",
+  );
   const { q, inactifs } = await searchParams;
   const query = q?.trim() ?? "";
   const showInactifs = inactifs === "1";
-  const canWrite = profile.role === "patron" || profile.role === "adjoint";
+  // Livreur peut creer/editer (commercial sur le terrain), Production en lecture
+  const canWrite =
+    profile.role === "patron" ||
+    profile.role === "adjoint" ||
+    profile.role === "livreur";
 
   let request = supabase
     .from("clients")
