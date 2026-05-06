@@ -50,10 +50,8 @@ if (revertErr) {
   console.log("✓ Cobaye remis en fabrication (rien n'a change).");
 }
 
-// Verifier qu'au moins une policy adjoint existe
-const { data: policies, error: polErr } = await admin
-  .rpc("pg_policies_for_adjoint")
-  .select();
+// Verifier qu'au moins une policy adjoint existe (info uniquement)
+const { error: polErr } = await admin.rpc("pg_policies_for_adjoint");
 
 if (polErr) {
   // La fonction n'existe pas, on fait autrement : check via INFORMATION_SCHEMA

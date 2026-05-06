@@ -7,7 +7,7 @@ import { LivraisonForm } from "./livraison-form";
 export const metadata = { title: "Nouvelle livraison" };
 
 export default async function NouvelleLivraisonPage() {
-  const { supabase } = await requireRole("patron", "adjoint", "fabrication");
+  const { supabase } = await requireRole("patron", "adjoint", "fabrication", "livreur");
 
   const [{ data: clients }, { data: produits }, { data: tarifs }, { data: livreurs }] =
     await Promise.all([
