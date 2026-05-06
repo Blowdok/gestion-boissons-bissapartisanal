@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { requireRole } from "@/lib/auth/guards";
 import { PageHeader } from "@/components/layout/page-header";
 import { LivraisonForm } from "./livraison-form";
+import { formatNomRole, type Role } from "@/lib/auth/roles";
 
 export const metadata = { title: "Nouvelle livraison" };
 
@@ -27,7 +28,7 @@ export default async function NouvelleLivraisonPage() {
         .select("client_id, produit_id, prix_ht"),
       supabase
         .from("profiles")
-        .select("id, nom")
+        .select("id, nom, role")
         .in("role", ["patron", "adjoint", "livreur"])
         .eq("actif", true)
         .order("nom"),
@@ -56,7 +57,10 @@ export default async function NouvelleLivraisonPage() {
           ...t,
           prix_ht: Number(t.prix_ht),
         }))}
-        livreurs={livreurs ?? []}
+        livreurs={(livreurs ?? []).map((l) => ({
+          id: l.id,
+          nom: formatNomRole(l.nom, l.role as Role),
+        }))}
       />
     </div>
   );

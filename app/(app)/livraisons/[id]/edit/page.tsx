@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { requireRole } from "@/lib/auth/guards";
 import { PageHeader } from "@/components/layout/page-header";
 import { EditLivraisonForm } from "./edit-form";
+import { formatNomRole, type Role } from "@/lib/auth/roles";
 
 export const metadata = { title: "Modifier livraison" };
 
@@ -23,12 +24,16 @@ export default async function EditLivraisonPage({
 
   if (!livraison) notFound();
 
-  const { data: livreurs } = await supabase
+  const { data: livreursRaw } = await supabase
     .from("profiles")
-    .select("id, nom")
+    .select("id, nom, role")
     .in("role", ["patron", "adjoint", "livreur"])
     .eq("actif", true)
     .order("nom");
+  const livreurs = (livreursRaw ?? []).map((l) => ({
+    id: l.id,
+    nom: formatNomRole(l.nom, l.role as Role),
+  }));
 
   const client = Array.isArray(livraison.clients)
     ? livraison.clients[0]
@@ -54,7 +59,7 @@ export default async function EditLivraisonPage({
           livreur_id: livraison.livreur_id,
           notes: livraison.notes,
         }}
-        livreurs={livreurs ?? []}
+        livreurs={livreurs}
       />
     </div>
   );
