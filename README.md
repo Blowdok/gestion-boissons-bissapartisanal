@@ -87,9 +87,17 @@ L'application est disponible sur http://localhost:3000.
 
 Appliquer dans l'ordre les migrations du dossier `supabase/migrations/` via
 le SQL Editor du Dashboard Supabase ou via `npx supabase db push` après
-`supabase link`. Les seeds (`supabase/seed.sql`) initialisent les 10
-produits Bissapa + 3 clients fictifs. Les 3 utilisateurs de test sont
-créés via `node --env-file=.env.local scripts/seed-users.mjs`.
+`supabase link`.
+
+Deux seeds disponibles selon l'environnement :
+
+| Environnement | Fichier | Contient |
+|---|---|---|
+| **Production** (chez le Patron) | `supabase/seed-production.sql` | Uniquement les 10 produits |
+| **Développement** (local) | `supabase/seed.sql` | 10 produits + 3 clients fictifs + lots/livraisons de test |
+
+Les 3 utilisateurs de test (dev uniquement) sont créés via
+`node --env-file=.env.local scripts/seed-users.mjs`.
 
 ## Scripts disponibles
 
@@ -219,7 +227,10 @@ netlify.toml                     # Config déploiement Netlify
    - **SQL Editor** → coller à la suite chacun des fichiers du dossier
      `supabase/migrations/` **dans l'ordre numérique** (`0001_*.sql`, puis
      `0002_*.sql`, etc.) → exécuter chacun
-   - Coller `supabase/seed.sql` → exécuter (insère les 10 produits)
+   - Coller [`supabase/seed-production.sql`](./supabase/seed-production.sql)
+     → exécuter (insère uniquement les 10 produits, **rien d'autre**)
+   - ⚠️ **Ne pas utiliser `seed.sql`** : ce fichier contient en plus 3 clients
+     fictifs destinés au développement local uniquement
 6. **Créer le bucket Storage** :
    - **Storage → New bucket** → nom : `justificatifs` → **Private** (non public)
 7. **Configurer Auth** :
@@ -332,23 +343,31 @@ Depuis le compte d'Emmanuel, **Admin → Utilisateurs** :
 > actions passées en mode test. Une fois en prod, ces comptes ne pourront
 > plus se connecter mais leur historique reste lisible.
 
-### 5. Purger les données opérationnelles de test
+### 5. (Si nécessaire) Purger les données de test
 
-Si tu as fait des saisies de test (lots, livraisons, factures, dépenses)
-pendant la recette, **vide la base** avant le démarrage réel pour repartir à
-zéro :
+> ✅ **Si tu as suivi l'étape A.5 et appliqué `seed-production.sql`** (et pas
+> `seed.sql`), la base est déjà vide côté clients/lots/livraisons et il n'y
+> a **rien à faire** ici. Tu peux passer à l'étape 6.
 
-1. Ouvrir **Supabase Dashboard → ton projet → SQL Editor**
-2. Coller le contenu du fichier [`supabase/cleanup-test-data.sql`](./supabase/cleanup-test-data.sql)
+Cette étape ne concerne que le cas où tu aurais saisi des **données de
+test directement dans la base de prod** (formation, démo avec Emmanuel,
+recette interne). Pour vider :
+
+1. **Supabase Dashboard → SQL Editor**
+2. Coller [`supabase/cleanup-test-data.sql`](./supabase/cleanup-test-data.sql)
 3. Exécuter (`Ctrl+Enter`)
 4. Vérifier la sortie finale : seul `produits` doit rester à 10, tout le
    reste à 0
 
-Ce script :
-- supprime les 3 clients fictifs (`Le Marché Créole`, `Ti Boucan`, `Vavangue`)
-- vide livraisons + factures + paiements + dépenses + lots + mouvements
-- réinitialise la séquence des n° de facture (repart à `FAC-AAAA-00001`)
-- **conserve** le catalogue produits (les 10 vrais Bissapa + Zandjabila)
+Ce script vide livraisons + factures + paiements + dépenses + lots +
+mouvements + supprime les 3 clients fictifs s'ils sont là, et réinitialise
+la séquence des n° de facture (repart à `FAC-AAAA-00001`). Le catalogue
+produits est conservé.
+
+> 💡 **Bonne pratique** : pour la formation et la recette avec Emmanuel,
+> utilise un environnement de **dev/staging séparé** (un 2ᵉ projet Supabase
+> gratuit) au lieu de polluer la prod. Tu lui livres une base propre dès
+> le départ et il n'y a aucun risque d'oubli de purge.
 
 ### 6. Configurer Resend en mode prod (envoi des factures par email)
 
