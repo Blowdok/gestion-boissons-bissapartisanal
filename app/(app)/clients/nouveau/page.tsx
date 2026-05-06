@@ -8,7 +8,7 @@ import { createClient } from "../actions";
 export const metadata = { title: "Nouveau client · Gestion Boissons" };
 
 export default async function NouveauClientPage() {
-  await requireRole("patron", "adjoint");
+  await requireRole("patron", "adjoint", "livreur");
   return (
     <div>
       <Link

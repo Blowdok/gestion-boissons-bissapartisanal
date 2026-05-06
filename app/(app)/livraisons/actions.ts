@@ -30,7 +30,7 @@ export async function createLivraison(
   _prev: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
-  const { supabase, user } = await requireRole("patron", "adjoint", "fabrication");
+  const { supabase, user } = await requireRole("patron", "adjoint", "fabrication", "livreur");
 
   const parsed = livraisonSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {

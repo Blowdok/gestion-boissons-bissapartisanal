@@ -49,7 +49,7 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/clients",
     label: "Clients",
     icon: Users,
-    roles: ["patron", "adjoint", "livreur"],
+    roles: ["patron", "adjoint", "livreur", "fabrication"],
   },
   {
     href: "/livraisons/tournee",

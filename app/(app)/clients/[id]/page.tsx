@@ -23,8 +23,17 @@ export default async function ClientDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { profile, supabase } = await requireRole("patron", "adjoint", "livreur");
-  const canWrite = profile.role === "patron" || profile.role === "adjoint";
+  // Production peut consulter la fiche client en lecture
+  const { profile, supabase } = await requireRole(
+    "patron",
+    "adjoint",
+    "livreur",
+    "fabrication",
+  );
+  const canWrite =
+    profile.role === "patron" ||
+    profile.role === "adjoint" ||
+    profile.role === "livreur";
 
   const { data: client } = await supabase
     .from("clients")

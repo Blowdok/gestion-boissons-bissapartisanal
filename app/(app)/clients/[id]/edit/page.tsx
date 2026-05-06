@@ -14,7 +14,7 @@ export default async function EditClientPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase } = await requireRole("patron", "adjoint");
+  const { supabase } = await requireRole("patron", "adjoint", "livreur");
 
   const { data: client } = await supabase
     .from("clients")

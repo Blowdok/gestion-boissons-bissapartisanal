@@ -13,7 +13,7 @@ export default async function NouvellePertePage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { supabase } = await requireRole("patron", "adjoint", "fabrication");
+  const { supabase } = await requireRole("patron", "adjoint", "fabrication", "livreur");
   const { lot: lotPreselected } = await searchParams;
 
   // Charge tous les lots avec stock dispo > 0 (impossible de declarer

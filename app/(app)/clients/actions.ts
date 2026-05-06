@@ -23,7 +23,9 @@ export async function createClient(
   _prev: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
-  const { supabase } = await requireRole("patron", "adjoint");
+  // Livreur (commercial) peut creer un client sur le terrain.
+  // Pas de tarif negocie a la creation -> prix catalogue par defaut.
+  const { supabase } = await requireRole("patron", "adjoint", "livreur");
 
   const raw = Object.fromEntries(formData.entries());
   const parsed = clientSchema.safeParse(raw);
@@ -48,7 +50,8 @@ export async function updateClient(
   _prev: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
-  const { supabase } = await requireRole("patron", "adjoint");
+  // Livreur peut corriger les coordonnees d'un client (telephone, adresse...)
+  const { supabase } = await requireRole("patron", "adjoint", "livreur");
 
   const raw = Object.fromEntries(formData.entries());
   const parsed = clientSchema.safeParse(raw);
