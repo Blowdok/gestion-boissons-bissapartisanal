@@ -20,6 +20,16 @@ const formatDate = (s: string) =>
 
 export function FacturePDF({ data }: { data: PdfFactureData }) {
   const total = data.montant_ht;
+  const aDesPaiements =
+    data.montant_encaisse > 0 || data.montant_a_encaisser > 0;
+  const labelFinal =
+    data.statut_paiement === "paye"
+      ? "ACQUITTÉE"
+      : data.statut_paiement === "partiel"
+        ? "RESTE À PAYER"
+        : "NET À PAYER";
+  const valeurFinale =
+    data.statut_paiement === "paye" ? 0 : data.solde;
 
   return (
     <Document
@@ -133,12 +143,35 @@ export function FacturePDF({ data }: { data: PdfFactureData }) {
             <Text style={pdfStyles.totalLabel}>Sous-total HT</Text>
             <Text style={pdfStyles.totalValue}>{formatEUR(total)}</Text>
           </View>
+          {data.montant_encaisse > 0 ? (
+            <View style={pdfStyles.totalRow}>
+              <Text style={pdfStyles.totalLabel}>Déjà encaissé</Text>
+              <Text style={pdfStyles.totalValue}>
+                − {formatEUR(data.montant_encaisse)}
+              </Text>
+            </View>
+          ) : null}
+          {data.montant_a_encaisser > 0 ? (
+            <View style={pdfStyles.totalRow}>
+              <Text style={pdfStyles.totalLabel}>À encaisser (programmé)</Text>
+              <Text style={pdfStyles.totalValue}>
+                − {formatEUR(data.montant_a_encaisser)}
+              </Text>
+            </View>
+          ) : null}
           <View style={pdfStyles.totalRowFinal}>
-            <Text style={pdfStyles.totalLabelFinal}>NET À PAYER</Text>
-            <Text style={pdfStyles.totalValueFinal}>{formatEUR(total)}</Text>
+            <Text style={pdfStyles.totalLabelFinal}>{labelFinal}</Text>
+            <Text style={pdfStyles.totalValueFinal}>
+              {formatEUR(valeurFinale)}
+            </Text>
           </View>
         </View>
         <Text style={pdfStyles.mentionTva}>{ENTREPRISE.mention_tva}</Text>
+        {aDesPaiements && data.statut_paiement !== "paye" ? (
+          <Text style={pdfStyles.mentionTva}>
+            Cette facture a fait l'objet d'un règlement partiel.
+          </Text>
+        ) : null}
 
         {/* Footer fixe en bas */}
         <View style={pdfStyles.footer} fixed>

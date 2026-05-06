@@ -28,6 +28,11 @@ export type PdfFactureData = {
   client: PdfClient;
   lignes: PdfLigne[];
   montant_ht: number;
+  // Etat des reglements (issu de la vue factures_avec_solde)
+  montant_encaisse: number;
+  montant_a_encaisser: number;
+  solde: number;
+  statut_paiement: "paye" | "partiel" | "impaye";
 };
 
 export type PdfBonLivraisonData = {
