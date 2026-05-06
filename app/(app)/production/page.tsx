@@ -19,12 +19,30 @@ export const metadata = { title: "Production" };
 export default async function ProductionPage() {
   const { supabase } = await requireRole("patron", "adjoint", "fabrication");
 
-  const { data: lots } = await supabase
-    .from("lots")
-    .select("id, date_production, dluo, qte_produite, numero_lot, produits(nom, gamme, format)")
-    .order("date_production", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(50);
+  const [{ data: lots }, { data: stocks }] = await Promise.all([
+    supabase
+      .from("lots")
+      .select(
+        "id, date_production, dluo, qte_produite, numero_lot, produits(nom, gamme, format)",
+      )
+      .order("date_production", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(50),
+    supabase
+      .from("stock_par_lot")
+      .select("lot_id, qte_livree, qte_perdue, qte_disponible"),
+  ]);
+
+  const stockParLot = new Map(
+    (stocks ?? []).map((s) => [
+      s.lot_id,
+      {
+        qte_livree: s.qte_livree ?? 0,
+        qte_perdue: s.qte_perdue ?? 0,
+        qte_disponible: s.qte_disponible ?? 0,
+      },
+    ]),
+  );
 
   return (
     <div>
@@ -49,7 +67,10 @@ export default async function ProductionPage() {
               <TableHead>Date production</TableHead>
               <TableHead>Produit</TableHead>
               <TableHead>N° lot</TableHead>
-              <TableHead className="text-right">Quantité</TableHead>
+              <TableHead className="text-right">Produite</TableHead>
+              <TableHead className="text-right">Livrée</TableHead>
+              <TableHead className="text-right">Perdue</TableHead>
+              <TableHead className="text-right">Disponible</TableHead>
               <TableHead>DLUO</TableHead>
             </TableRow>
           </TableHeader>
@@ -59,6 +80,11 @@ export default async function ProductionPage() {
                 // produits peut etre un objet (FK) ou un tableau selon le typage Supabase
                 const produit = Array.isArray(l.produits) ? l.produits[0] : l.produits;
                 const dluoPassee = new Date(l.dluo) < new Date(new Date().toDateString());
+                const stock = stockParLot.get(l.id) ?? {
+                  qte_livree: 0,
+                  qte_perdue: 0,
+                  qte_disponible: l.qte_produite,
+                };
                 return (
                   <TableRow key={l.id}>
                     <TableCell className="text-muted-foreground">
@@ -78,7 +104,18 @@ export default async function ProductionPage() {
                     <TableCell className="text-muted-foreground font-mono text-xs">
                       {l.numero_lot ?? "—"}
                     </TableCell>
-                    <TableCell className="text-right">{l.qte_produite}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      {l.qte_produite}
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      {stock.qte_livree > 0 ? `−${stock.qte_livree}` : "—"}
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      {stock.qte_perdue > 0 ? `−${stock.qte_perdue}` : "—"}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {stock.qte_disponible}
+                    </TableCell>
                     <TableCell>
                       {formatDate(l.dluo)}
                       {dluoPassee ? (
@@ -92,7 +129,7 @@ export default async function ProductionPage() {
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
                   Aucun lot enregistré pour le moment.
                 </TableCell>
               </TableRow>
