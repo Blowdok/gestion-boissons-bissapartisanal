@@ -9,6 +9,7 @@ import {
   Receipt,
   Coins,
   Settings,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "@/lib/auth/roles";
@@ -79,6 +80,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/admin",
     label: "Admin",
     icon: Settings,
+    roles: ["patron", "adjoint"],
+  },
+  {
+    href: "/copilot",
+    label: "Copilot",
+    icon: Sparkles,
     roles: ["patron", "adjoint"],
   },
 ];
