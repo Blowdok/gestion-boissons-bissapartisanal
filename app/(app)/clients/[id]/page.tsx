@@ -30,10 +30,14 @@ export default async function ClientDetailPage({
     "livreur",
     "fabrication",
   );
-  const canWrite =
+  // Coordonnees client : Livreur (commercial) peut editer
+  const canEditCoords =
     profile.role === "patron" ||
     profile.role === "adjoint" ||
     profile.role === "livreur";
+  // Tarifs negocies + desactivation : Patron/Adjoint seulement (touche au CA)
+  const canManageTarifsEtStatut =
+    profile.role === "patron" || profile.role === "adjoint";
 
   const { data: client } = await supabase
     .from("clients")
@@ -80,13 +84,15 @@ export default async function ClientDetailPage({
           </>
         }
         actions={
-          canWrite ? (
-            <>
+          <>
+            {canManageTarifsEtStatut ? (
               <ClientStatutToggle
                 id={client.id}
                 actif={client.actif}
                 raisonSociale={client.raison_sociale}
               />
+            ) : null}
+            {canEditCoords ? (
               <Link
                 href={`/clients/${id}/edit`}
                 className={buttonVariants({ variant: "outline" })}
@@ -94,8 +100,8 @@ export default async function ClientDetailPage({
                 <Pencil className="size-4" />
                 Modifier
               </Link>
-            </>
-          ) : null
+            ) : null}
+          </>
         }
       />
 
@@ -145,7 +151,7 @@ export default async function ClientDetailPage({
       <div className="mt-6">
         <TarifsEditor
           clientId={client.id}
-          canWrite={canWrite}
+          canWrite={canManageTarifsEtStatut}
           produits={
             produits?.map((p) => ({
               id: p.id,
