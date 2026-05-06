@@ -28,7 +28,7 @@ export default async function NouvelleLivraisonPage() {
       supabase
         .from("profiles")
         .select("id, nom")
-        .in("role", ["livreur", "patron"])
+        .in("role", ["patron", "adjoint", "livreur"])
         .eq("actif", true)
         .order("nom"),
     ]);
