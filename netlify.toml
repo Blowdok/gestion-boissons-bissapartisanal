@@ -1,0 +1,32 @@
+## Configuration Netlify pour Le Bissap Artisanal (Next.js 16 + Supabase)
+## Le runtime @netlify/next est detecte et installe automatiquement.
+## Pas besoin d'adapter manuel.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+## Variables d'environnement a definir dans le Dashboard Netlify
+## (Site settings > Environment variables) — ne pas commit ici :
+##
+##   NEXT_PUBLIC_SUPABASE_URL
+##   NEXT_PUBLIC_SUPABASE_ANON_KEY
+##   SUPABASE_SERVICE_ROLE_KEY        (server only, ne JAMAIS exposer)
+##   NEXT_PUBLIC_APP_URL              ex: https://lebissap.netlify.app
+##   RESEND_API_KEY                   (optionnel — l'envoi email s'eteint si absent)
+##   RESEND_FROM                      (optionnel — utilise onboarding@resend.dev sinon)
+##
+## Variables optionnelles pour personnaliser les PDFs (defaults Bissapa OK) :
+##   NEXT_PUBLIC_ENTREPRISE_NOM, NEXT_PUBLIC_ENTREPRISE_SIRET, etc.
+##   (cf. lib/config/entreprise.ts pour la liste complete)
+
+## Headers de securite (bonus, pas obligatoire)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
