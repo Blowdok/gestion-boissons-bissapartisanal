@@ -17,11 +17,15 @@ import { ROLES, ROLE_LABELS, type Role } from "@/lib/auth/roles";
 import { createUtilisateur, type ActionState } from "./actions";
 
 export function UtilisateurForm({ currentUserRole }: { currentUserRole: Role }) {
-  // L'Adjoint ne peut creer que des Fabrication / Livreur
+  // Choix UX : on ne propose JAMAIS de creer un compte 'patron' a la volee.
+  // Pour transmettre la qualite de Patron a quelqu'un (succession, associé),
+  // promouvoir un compte EXISTANT via le menu 'Changer en Patron' sur sa fiche.
+  // - L'Adjoint ne peut creer que Fabrication / Livreur
+  // - Le Patron peut creer Adjoint, Fabrication, Livreur (mais pas un autre Patron)
   const rolesProposables: readonly Role[] =
     currentUserRole === "adjoint"
       ? (["fabrication", "livreur"] as Role[])
-      : ROLES;
+      : (["adjoint", "fabrication", "livreur"] as Role[]);
   const [state, formAction, pending] = useActionState<ActionState | undefined, FormData>(
     createUtilisateur,
     undefined,

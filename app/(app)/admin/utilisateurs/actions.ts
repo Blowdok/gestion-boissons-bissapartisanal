@@ -39,6 +39,17 @@ export async function createUtilisateur(
 
   const { email, nom, role, password } = parsed.data;
 
+  // Garde-fou global : interdit de creer un compte Patron via le formulaire.
+  // Pour donner la qualite de Patron a quelqu'un (succession, associé), il
+  // faut promouvoir un compte EXISTANT via 'Changer en Patron' sur sa fiche.
+  if (role === "patron") {
+    return {
+      fieldErrors: {
+        role: "Pour creer un Patron, cree d'abord un autre rôle puis promeus le compte via le menu (•••) → « Changer en Patron ».",
+      },
+    };
+  }
+
   // Garde-fou Adjoint : ne peut pas creer de Patron ni d'autre Adjoint
   if (profile.role === "adjoint" && !ROLES_ADJOINT_ALLOWED.includes(role)) {
     return {
