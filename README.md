@@ -88,6 +88,8 @@ L'application est disponible sur http://localhost:3000.
 | `RESEND_API_KEY` | Clé API Resend pour l'envoi des factures par email |
 | `RESEND_FROM` | Adresse expéditeur (ex: `Le Bissap Artisanal <facture@xxx>`) |
 | `NEXT_PUBLIC_ENTREPRISE_*` | Surcharges des infos entreprise (cf. `lib/config/entreprise.ts`) |
+| `OPENROUTER_API_KEY` | Clé API OpenRouter pour les fonctionnalités IA V2 (sans elle, les features IA sont désactivées gracieusement) |
+| `OPENROUTER_APP_NAME` | Nom affiché dans le dashboard OpenRouter (défaut : `Le Bissap Artisanal`) |
 
 ### Initialisation BDD Supabase
 
@@ -192,6 +194,59 @@ netlify.toml                     # Config déploiement Netlify
   `https://gestion-bissap-artisanal.blowdok.fr` (sous-domaine provisoire).
   Reste à faire : domaine définitif + vérification Resend, recette client,
   formation utilisateurs.
+- 🚧 **V2 — Fonctionnalités IA** (branche `feature/v2-ai`) : intégration
+  OpenRouter pour 3 features assistantes — voir section dédiée plus bas.
+
+## 🤖 V2 — Fonctionnalités IA (en cours sur `feature/v2-ai`)
+
+La V2 ajoute une couche IA assistive sans modifier le cœur métier. Elle est
+développée sur la branche `feature/v2-ai` et ne sera fusionnée dans `main`
+qu'après validation client.
+
+### Provider : OpenRouter
+
+[OpenRouter](https://openrouter.ai) sert de passerelle unifiée vers 100+
+modèles IA. Avantages :
+- **Une seule clé API** pour Gemini, Claude, GPT, Llama, etc.
+- **Mix coût/qualité** selon le cas d'usage (cf. `lib/ai/models.ts`)
+- **Fallback automatique** si un provider est indisponible
+- **Facturation unifiée** chez Bissapa (pas 5 contrats à gérer)
+
+### Sélection des modèles
+
+| Cas d'usage | Modèle | Pourquoi |
+|---|---|---|
+| Vision OCR (tickets) | Gemini 2.5 Flash | Très bon en OCR FR + ultra cheap (~0,001 €/image) |
+| Tool-calling (Copilot) | Claude Sonnet 4.6 | Raisonnement structuré, multi-step, excellent FR |
+| Rédaction (relances) | Claude Haiku 4.5 | Rapide, qualité suffisante pour des emails courts |
+
+### Features prévues
+
+1. **📸 Scanner un ticket** — sur `/finance/depenses/nouvelle`, photo →
+   pré-remplissage automatique (montant, date, catégorie, description)
+2. **💬 Patron Copilot** — page `/copilot` (Patron + Adjoint), assistant
+   conversationnel qui répond aux questions métier via tool-calling sur
+   les vues SQL existantes
+3. **📧 Génération de relances impayés** — sur les fiches factures,
+   bouton qui pré-rédige un email avec ton calibré selon l'ancienneté
+
+### Estimation budget mensuel
+
+Pour la volumétrie d'un petit artisan :
+- Vision tickets (~50/mois) : ~0,10 €
+- Copilot (~200 questions/mois) : ~2 €
+- Relances (~20/mois) : ~0,50 €
+
+→ **~5-15 €/mois** maximum avec usage actif. Budget prévisible et marginal.
+
+### Dégradation gracieuse
+
+Si `OPENROUTER_API_KEY` n'est pas configurée :
+- Les boutons IA affichent un message « IA non activée »
+- L'app fonctionne **exactement** comme la V1 (saisie manuelle)
+- Aucun plantage, aucune erreur visible
+
+---
 
 ## Comptes de test (dev)
 
