@@ -29,6 +29,7 @@ import {
 } from "../../livraisons/schemas";
 import { PaiementForm } from "./paiement-form";
 import { DeletePaiementButton } from "./delete-paiement";
+import { EnvoiEmailButton } from "./envoi-email-button";
 
 export const metadata = { title: "Facture · Gestion Boissons" };
 
@@ -53,7 +54,7 @@ export default async function FactureDetailPage({
   const [{ data: client }, { data: livraison }, { data: paiements }] = await Promise.all([
     supabase
       .from("clients")
-      .select("raison_sociale, contact, adresse, ville, code_postal, siret, conditions_paiement")
+      .select("raison_sociale, contact, adresse, ville, code_postal, siret, email, telephone, conditions_paiement")
       .eq("id", facture.client_id)
       .maybeSingle(),
     supabase
@@ -120,6 +121,10 @@ export default async function FactureDetailPage({
               <Download className="size-4" />
               Télécharger PDF
             </a>
+            <EnvoiEmailButton
+              factureId={facture.id}
+              clientEmail={client?.email ?? null}
+            />
             <Link
               href={`/livraisons/${facture.livraison_id}`}
               className={buttonVariants({ variant: "outline" })}

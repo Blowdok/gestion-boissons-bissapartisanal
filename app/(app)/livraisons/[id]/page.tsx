@@ -54,7 +54,7 @@ export default async function LivraisonDetailPage({
     .select(
       `
       id, date_prevue, date_livraison, statut, notes, livreur_id, created_at,
-      clients(id, raison_sociale, contact, ville, telephone, conditions_paiement),
+      clients(id, raison_sociale, contact, ville, telephone, email, conditions_paiement),
       lignes_livraison(id, qte, prix_unitaire_ht, lots_utilises, produits(id, nom, gamme, format))
       `,
     )
@@ -139,6 +139,7 @@ export default async function LivraisonDetailPage({
                 id={livraison.id}
                 statut={statut}
                 role={profile.role}
+                clientEmail={client?.email ?? null}
               />
             ) : null}
           </>
