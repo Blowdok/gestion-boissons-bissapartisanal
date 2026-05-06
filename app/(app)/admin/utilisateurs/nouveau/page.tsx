@@ -21,8 +21,8 @@ export default async function NouveauUtilisateurPage() {
         title="Nouvel utilisateur"
         description={
           profile.role === "adjoint"
-            ? "Créer un compte Fabrication ou Livreur (les comptes Patron et Adjoint sont réservés au Patron)."
-            : "Créer un compte Patron, Adjoint, Fabrication ou Livreur."
+            ? "Créer un compte Fabrication ou Livreur (Adjoint et Patron réservés au Patron)."
+            : "Créer un compte Adjoint, Fabrication ou Livreur. Pour transmettre la qualité de Patron, promeus un compte existant via son menu (•••)."
         }
       />
       <UtilisateurForm currentUserRole={profile.role} />
