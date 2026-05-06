@@ -78,5 +78,4 @@ join public.lots l on l.id = li.lot_id
 join public.produits p on p.id = l.produit_id;
 
 comment on table public.lot_ingredients is
-  'Tracabilite des ingredients utilises pour chaque lot de production. ' ||
-  'La date_peremption est celle de l ingredient, pas du lot fini.';
+  'Tracabilite des ingredients utilises pour chaque lot de production. La date_peremption est celle de l ingredient, pas du lot fini.';
