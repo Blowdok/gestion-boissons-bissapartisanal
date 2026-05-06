@@ -15,7 +15,7 @@
 ##   NEXT_PUBLIC_SUPABASE_URL
 ##   NEXT_PUBLIC_SUPABASE_ANON_KEY
 ##   SUPABASE_SERVICE_ROLE_KEY        (server only, ne JAMAIS exposer)
-##   NEXT_PUBLIC_APP_URL              ex: https://lebissap.netlify.app
+##   NEXT_PUBLIC_APP_URL              ex: https://gestion-bissap-artisanal.blowdok.fr
 ##   RESEND_API_KEY                   (optionnel — l'envoi email s'eteint si absent)
 ##   RESEND_FROM                      (optionnel — utilise onboarding@resend.dev sinon)
 ##
