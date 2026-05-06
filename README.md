@@ -73,7 +73,7 @@ L'application est disponible sur http://localhost:3000.
 | `NEXT_PUBLIC_SUPABASE_URL` | URL du projet Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clé publique Supabase (PostgREST + Auth client) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Clé service_role (server only, **jamais** exposée au browser) |
-| `NEXT_PUBLIC_APP_URL` | URL publique de l'app (ex: `http://localhost:3000` en dev) |
+| `NEXT_PUBLIC_APP_URL` | URL publique de l'app (dev : `http://localhost:3000`, prod : `https://gestion-bissap-artisanal.blowdok.fr`) |
 
 ### Variables optionnelles
 
@@ -169,8 +169,10 @@ netlify.toml                     # Config déploiement Netlify
   clients & produits, export CSV comptable
 - ✅ **Bonus** — Rôle Adjoint (Patron temporaire), dark mode, badges colorés,
   sidebar sticky avec scroll interne, suffixe `(adj)` sur les Adjoints
-- ⏭️ **Phase 6** — Recette client, formation utilisateurs, mise en production
-  (déploiement Netlify + domaine vérifié Resend)
+- 🟡 **Phase 6** — Mise en production : déploiement Netlify ✅ sur
+  `https://gestion-bissap-artisanal.blowdok.fr` (sous-domaine provisoire).
+  Reste à faire : domaine définitif + vérification Resend, recette client,
+  formation utilisateurs.
 
 ## Comptes de test (dev)
 
