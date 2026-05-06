@@ -17,6 +17,7 @@ import {
   CATEGORIE_LABELS,
   type CategorieDepense,
 } from "../schemas";
+import { ScanTicketButton, type TicketPrefill } from "./scan-ticket-button";
 
 export function DepenseForm() {
   const [state, formAction, pending] = useActionState<ActionState | undefined, FormData>(
@@ -32,8 +33,28 @@ export function DepenseForm() {
   const [description, setDescription] = useState<string>("");
   const [filename, setFilename] = useState<string>("");
 
+  // Pre-remplissage suite a un scan IA : on met a jour uniquement les
+  // champs qui ont ete extraits avec succes
+  const handleScanResult = (data: TicketPrefill) => {
+    if (data.date) setDate(data.date);
+    if (data.montant) setMontant(data.montant);
+    if (data.categorie) setCategorie(data.categorie);
+    if (data.description) setDescription(data.description);
+  };
+
   return (
     <form action={formAction} className="max-w-2xl space-y-6">
+      <div className="flex items-start gap-3 rounded-lg border bg-muted/30 p-4">
+        <div className="flex-1">
+          <p className="text-sm font-medium">Saisie rapide par photo</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Scannez un ticket de caisse pour pré-remplir le formulaire
+            automatiquement.
+          </p>
+        </div>
+        <ScanTicketButton onResult={handleScanResult} disabled={pending} />
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="date">Date *</Label>
