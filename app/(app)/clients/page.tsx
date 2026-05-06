@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/page-header";
 
-export const metadata = { title: "Clients · Gestion Boissons" };
+export const metadata = { title: "Clients" };
 
 type SearchParams = Promise<{ q?: string; inactifs?: string }>;
 

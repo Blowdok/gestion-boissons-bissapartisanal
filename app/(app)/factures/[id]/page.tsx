@@ -31,7 +31,7 @@ import { PaiementForm } from "./paiement-form";
 import { DeletePaiementButton } from "./delete-paiement";
 import { EnvoiEmailButton } from "./envoi-email-button";
 
-export const metadata = { title: "Facture · Gestion Boissons" };
+export const metadata = { title: "Facture" };
 
 export default async function FactureDetailPage({
   params,

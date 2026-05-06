@@ -9,7 +9,7 @@ import {
 import { ResetForm } from "./reset-form";
 
 export const metadata = {
-  title: "Réinitialiser le mot de passe · Gestion Boissons",
+  title: "Réinitialiser le mot de passe",
 };
 
 export default function ResetPage() {

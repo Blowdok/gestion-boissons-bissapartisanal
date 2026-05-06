@@ -10,11 +10,11 @@ export default function Home() {
             La Réunion · Boissons artisanales
           </p>
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-            Gestion Boissons
+            Le Bissap Artisanal
           </h1>
           <p className="mx-auto max-w-lg text-lg text-muted-foreground">
-            Production, stock, livraisons, facturation B2B et finance —
-            centralisés dans une seule application.
+            Gestion société — production, stock, livraisons, facturation B2B
+            et finance, centralisés dans une seule application.
           </p>
         </div>
 

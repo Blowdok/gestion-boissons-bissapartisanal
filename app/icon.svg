@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Hibiscus stylise inspire du logo Bissapa : 5 petales rouges + pistil dore -->
+  <g transform="translate(32 34)">
+    <!-- 5 petales en rotation autour du centre -->
+    <g fill="#c8102e">
+      <ellipse cx="0" cy="-18" rx="11" ry="16" />
+      <ellipse cx="0" cy="-18" rx="11" ry="16" transform="rotate(72)" />
+      <ellipse cx="0" cy="-18" rx="11" ry="16" transform="rotate(144)" />
+      <ellipse cx="0" cy="-18" rx="11" ry="16" transform="rotate(216)" />
+      <ellipse cx="0" cy="-18" rx="11" ry="16" transform="rotate(288)" />
+    </g>
+    <!-- Veines plus foncees sur les petales -->
+    <g stroke="#8a0a1f" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.6">
+      <line x1="0" y1="-4" x2="0" y2="-28" />
+      <line x1="0" y1="-4" x2="0" y2="-28" transform="rotate(72)" />
+      <line x1="0" y1="-4" x2="0" y2="-28" transform="rotate(144)" />
+      <line x1="0" y1="-4" x2="0" y2="-28" transform="rotate(216)" />
+      <line x1="0" y1="-4" x2="0" y2="-28" transform="rotate(288)" />
+    </g>
+    <!-- Coeur de la fleur (jaune dore) -->
+    <circle cx="0" cy="0" r="6" fill="#f4c430" />
+    <!-- Pistil qui depasse vers le haut -->
+    <path d="M 0 -2 Q -1 -14 0 -22 Q 1 -14 0 -2 Z" fill="#d4a017" />
+    <!-- Pollen au bout du pistil -->
+    <circle cx="-1.5" cy="-22" r="1.6" fill="#f4c430" />
+    <circle cx="1.5" cy="-22" r="1.6" fill="#f4c430" />
+    <circle cx="0" cy="-24" r="1.6" fill="#f4c430" />
+  </g>
+</svg>

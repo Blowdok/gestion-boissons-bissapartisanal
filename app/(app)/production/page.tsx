@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/page-header";
 import { formatDate } from "@/lib/utils/format";
 
-export const metadata = { title: "Production · Gestion Boissons" };
+export const metadata = { title: "Production" };
 
 export default async function ProductionPage() {
   const { supabase } = await requireRole("patron", "adjoint", "fabrication");

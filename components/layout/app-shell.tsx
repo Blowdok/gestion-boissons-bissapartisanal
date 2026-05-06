@@ -40,7 +40,7 @@ export function AppShell({ profile, email, children }: AppShellProps) {
       {/* Topbar mobile */}
       <header className="flex items-center justify-between border-b bg-background px-4 py-3 md:hidden">
         <Link href="/" className="text-lg font-semibold">
-          Gestion Boissons
+          Le Bissap Artisanal
         </Link>
         <Button
           variant="ghost"
@@ -87,9 +87,9 @@ function SidebarContent({
     <div className="flex h-full flex-col">
       <div className="border-b px-5 py-5">
         <Link href="/" className="text-lg font-semibold">
-          Gestion Boissons
+          Le Bissap Artisanal
         </Link>
-        <p className="mt-1 text-xs text-muted-foreground">Bissapa · La Réunion</p>
+        <p className="mt-1 text-xs text-muted-foreground">Gestion Société</p>
       </div>
 
       <nav className="flex-1 overflow-y-auto p-3">

@@ -1,4 +1,4 @@
-# Gestion Boissons
+# Le Bissap Artisanal — Gestion Société
 
 Application web sur mesure pour **Le Bissap Artisanal** (Emmanuel Mbotifeno,
 Le Port, La Réunion) — gestion intégrée d'une entreprise artisanale de

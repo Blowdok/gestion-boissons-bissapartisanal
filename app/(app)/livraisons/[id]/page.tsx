@@ -30,7 +30,7 @@ import {
 } from "../schemas";
 import { LivraisonStatusActions } from "./status-actions";
 
-export const metadata = { title: "Livraison · Gestion Boissons" };
+export const metadata = { title: "Livraison" };
 
 const GAMME_LABEL: Record<string, string> = {
   bissapa: "Bissapa",

@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ClientForm } from "../../client-form";
 import { updateClient } from "../../actions";
 
-export const metadata = { title: "Modifier client · Gestion Boissons" };
+export const metadata = { title: "Modifier client" };
 
 export default async function EditClientPage({
   params,

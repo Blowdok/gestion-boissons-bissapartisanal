@@ -8,7 +8,7 @@ import {
 import { ConfirmForm } from "./confirm-form";
 
 export const metadata = {
-  title: "Nouveau mot de passe · Gestion Boissons",
+  title: "Nouveau mot de passe",
 };
 
 export default function ResetConfirmPage() {

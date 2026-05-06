@@ -12,7 +12,7 @@ import { ROLE_HOME, type Role } from "@/lib/auth/roles";
 import { LoginForm } from "./login-form";
 
 export const metadata = {
-  title: "Connexion · Gestion Boissons",
+  title: "Connexion",
 };
 
 export default async function LoginPage() {
@@ -38,7 +38,7 @@ export default async function LoginPage() {
       <CardHeader className="space-y-2 text-center">
         <CardTitle className="text-2xl">Connexion</CardTitle>
         <CardDescription>
-          Accédez à votre espace Gestion Boissons.
+          Accédez à votre espace Le Bissap Artisanal.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

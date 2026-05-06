@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/page-header";
 
-export const metadata = { title: "Stock · Gestion Boissons" };
+export const metadata = { title: "Stock" };
 
 const GAMME_LABEL: Record<string, string> = {
   bissapa: "Bissapa",

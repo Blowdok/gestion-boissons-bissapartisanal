@@ -20,7 +20,7 @@ import {
   type StatutPaiement,
 } from "../livraisons/schemas";
 
-export const metadata = { title: "Factures · Gestion Boissons" };
+export const metadata = { title: "Factures" };
 
 type SearchParams = Promise<{ filtre?: string }>;
 

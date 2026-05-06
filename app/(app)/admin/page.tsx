@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/page-header";
 
-export const metadata = { title: "Admin · Gestion Boissons" };
+export const metadata = { title: "Admin" };
 
 export default async function AdminPage() {
   const { supabase } = await requireRole("patron", "adjoint");

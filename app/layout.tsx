@@ -15,9 +15,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gestion Boissons",
+  title: {
+    template: "%s · Le Bissap Artisanal",
+    default: "Le Bissap Artisanal",
+  },
   description:
-    "Application de gestion intégrée pour artisan producteur de boissons : production, stock, livraisons, facturation B2B et finance.",
+    "Application de gestion intégrée pour Le Bissap Artisanal (Bissapa, La Réunion) : production, stock, livraisons, facturation B2B et finance.",
 };
 
 export default function RootLayout({

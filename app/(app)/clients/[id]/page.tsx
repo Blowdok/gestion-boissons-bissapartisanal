@@ -15,7 +15,7 @@ import { formatEUR } from "@/lib/utils/format";
 import { TarifsEditor } from "./tarifs-editor";
 import { ClientStatutToggle } from "./statut-toggle";
 
-export const metadata = { title: "Fiche client · Gestion Boissons" };
+export const metadata = { title: "Fiche client" };
 
 export default async function ClientDetailPage({
   params,

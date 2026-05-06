@@ -21,7 +21,7 @@ import { formatEUR } from "@/lib/utils/format";
 import { calculerRepartition } from "@/lib/domain/repartition";
 import { CaChart } from "./ca-chart";
 
-export const metadata = { title: "Tableau de bord · Gestion Boissons" };
+export const metadata = { title: "Tableau de bord" };
 
 const MOIS_LABELS = [
   "Janv.", "Févr.", "Mars", "Avril", "Mai", "Juin",

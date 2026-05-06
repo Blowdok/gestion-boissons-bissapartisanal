@@ -23,7 +23,7 @@ import {
   type ModePaiement,
 } from "./schemas";
 
-export const metadata = { title: "Livraisons · Gestion Boissons" };
+export const metadata = { title: "Livraisons" };
 
 type SearchParams = Promise<{ q?: string; statut?: string }>;
 

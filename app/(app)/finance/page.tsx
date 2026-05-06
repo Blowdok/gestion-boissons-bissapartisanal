@@ -13,7 +13,7 @@ import { formatEUR } from "@/lib/utils/format";
 import { ListeDepenses } from "./depenses/liste-depenses";
 import type { CategorieDepense } from "./depenses/schemas";
 
-export const metadata = { title: "Finance · Gestion Boissons" };
+export const metadata = { title: "Finance" };
 
 export default async function FinancePage() {
   const { supabase } = await requireRole("patron");

@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ClientForm } from "../client-form";
 import { createClient } from "../actions";
 
-export const metadata = { title: "Nouveau client · Gestion Boissons" };
+export const metadata = { title: "Nouveau client" };
 
 export default async function NouveauClientPage() {
   await requireRole("patron", "adjoint", "livreur");

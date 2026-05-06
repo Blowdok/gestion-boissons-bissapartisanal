@@ -1,5 +1,6 @@
-import { Document, Page, Text, View } from "@react-pdf/renderer";
+import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
 import { ENTREPRISE } from "@/lib/config/entreprise";
+import { getLogoEntreprise } from "./logo";
 import { pdfStyles } from "./styles";
 import type { PdfFactureData } from "./types";
 
@@ -30,19 +31,21 @@ export function FacturePDF({ data }: { data: PdfFactureData }) {
         : "NET À PAYER";
   const valeurFinale =
     data.statut_paiement === "paye" ? 0 : data.solde;
+  const logo = getLogoEntreprise();
 
   return (
     <Document
       title={`Facture ${data.numero}`}
       author={ENTREPRISE.raison_sociale}
       subject={`Facture pour ${data.client.raison_sociale}`}
-      creator="Gestion Boissons"
-      producer="Gestion Boissons"
+      creator="Le Bissap Artisanal"
+      producer="Le Bissap Artisanal"
     >
       <Page size="A4" style={pdfStyles.page}>
         {/* Header : emetteur a gauche, document a droite */}
         <View style={pdfStyles.headerRow}>
           <View style={pdfStyles.emetteurBlock}>
+            {logo ? <Image src={logo} style={pdfStyles.logo} /> : null}
             <Text style={pdfStyles.emetteurNom}>{ENTREPRISE.raison_sociale}</Text>
             {ENTREPRISE.gerant ? (
               <Text style={pdfStyles.emetteurLine}>

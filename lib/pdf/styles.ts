@@ -22,6 +22,12 @@ export const pdfStyles = StyleSheet.create({
   emetteurBlock: {
     width: "50%",
   },
+  logo: {
+    width: 110,
+    height: 60,
+    marginBottom: 8,
+    objectFit: "contain",
+  },
   emetteurNom: {
     fontSize: 16,
     fontWeight: "bold",
