@@ -24,10 +24,14 @@ production de boissons.
 - Email transactionnel : envoi automatique de la facture au client (Resend)
 - Paiements : multi-modes (espèces, virement, chèque, carte), multi-dates
   (chèques post-datés gérés comme paiements promis)
-- Finance : saisie dépenses avec photo justificatif, répartition automatique
-  50% réinvestissement / 30% charges / 20% personnel
-- Dashboard : KPIs CA / Dépenses / Marge, graphique 12 mois, top 5 clients & produits
-- Export comptable CSV mensuel pour transmission au comptable
+- Finance : saisie dépenses avec photo justificatif, **enveloppes
+  budgétaires** (réinvestissement / charges / personnel) et **paiements
+  multi-échéances** (échéances prévues + règlements effectifs, dette
+  fournisseur ouverte sans date possible)
+- Dashboard : KPIs CA / Décaissements / Résultat, **vue enveloppes**
+  alloué × consommé × solde, graphique 12 mois, top 5 clients & produits
+- Export comptable CSV mensuel : factures, encaissements, dépenses
+  engagées et décaissements effectifs (cash flow réel)
 
 **Quatre rôles** :
 - **Patron** : accès complet, finance, gestion utilisateurs
@@ -154,7 +158,7 @@ lib/
   └── config/                    # Config entreprise (Bissapa)
 
 supabase/
-  ├── migrations/                # 15 migrations SQL versionnées
+  ├── migrations/                # 16 migrations SQL versionnées
   ├── seed.sql                   # Dev : 10 produits + 3 clients fictifs
   ├── seed-production.sql        # Prod : uniquement les 10 produits
   └── cleanup-test-data.sql      # Purge données opérationnelles si besoin
@@ -170,6 +174,126 @@ netlify.toml                     # Config déploiement Netlify
 - Cahier des charges : `Cahier_des_Charges_Application_Gestion_Boissons.docx`
 - Devis : `Devis_Application_Gestion_Boissons.docx`
 - Plan d'implémentation : voir le plan validé en début de projet
+
+## 📘 Guide finance — Comprendre la gestion des dépenses
+
+> Cette section est écrite pour le Patron de Bissapa. Elle explique en
+> langage simple comment fonctionne le module **Finance** et comment
+> piloter ton activité avec.
+
+### 1. Les 11 catégories de dépense
+
+Quand tu saisis une dépense, tu choisis une **catégorie**. Voici la liste
+et ce qu'on met dedans :
+
+| Catégorie | Ce qu'elle contient |
+|---|---|
+| **Matière première** | Sucre, fleurs d'hibiscus, fruits (ananas, gingembre, citron, menthe), gaz et eau de production, bouteilles, cartons, étiquettes, affiches, machines |
+| **Salaire employé** | Salaires + charges sociales du personnel |
+| **Électricité** | Électricité du local (le gaz et l'eau de production restent en *Matière première*) |
+| **Cotisation de l'État** | URSSAF, impôts, CFE |
+| **Loyer** | Loyer du local |
+| **Logiciel facturation** | Abonnements logiciels |
+| **Téléphone** | Forfait pro, internet |
+| **Transport** | Carburant, réparation du véhicule |
+| **Assurance** | RC professionnelle, assurance véhicule, multirisque |
+| **Marketing & communication** | Pubs, salons, flyers, réseaux sociaux, communication |
+| **Autres** | Tout ce qui ne rentre dans aucune catégorie ci-dessus |
+
+### 2. Les 3 enveloppes 50/30/20
+
+Chaque dépense est rattachée à une **enveloppe** (le « budget » dans
+lequel tu prends l'argent). Le Tableau de bord calcule pour chaque mois :
+- combien tu **alloues** à chaque enveloppe (en % du résultat du mois),
+- combien tu as **consommé**,
+- ton **solde** restant (vert = OK, rouge = à découvert).
+
+| Enveloppe | Pourcentage du résultat | À quoi elle sert |
+|---|---|---|
+| 🟢 **Réinvestissement** | 50 % | Tout ce qui fait tourner la production : matières premières, machines, emballages |
+| 🟠 **Charges** | 30 % | Tous les frais récurrents qui ne sont pas de la production : salaires, loyer, électricité, cotisations, transport, assurance, communication, logiciels, téléphone |
+| 🔵 **Personnel** | 20 % | Ton enveloppe à toi (Emmanuel) — tes besoins perso et familiaux. Tu peux aussi y piocher pour payer ponctuellement une charge ou un réinvestissement si tu le souhaites |
+
+**Astuce** : quand tu choisis une catégorie, l'enveloppe se remplit
+automatiquement avec le bon défaut. Tu peux **toujours la changer**
+si tu veux imputer la dépense ailleurs (ex : payer une livraison
+bouteilles avec ton enveloppe Personnel).
+
+### 3. Les 4 statuts de paiement
+
+Une fois la dépense créée, son **statut** dépend des paiements que tu
+attaches dessus. Tu vois ces statuts colorés dans le tableau Finance :
+
+| Badge | Quand l'utiliser |
+|---|---|
+| 🔴 **À payer** | La dépense existe mais tu n'as **rien programmé** : pas d'échéance, pas de règlement. C'est une **dette ouverte** sur laquelle tu dois agir. |
+| 🔵 **Prévu** | Tu as **planifié une ou plusieurs échéances** futures (date prévue) mais l'argent n'est pas encore parti. Pour anticiper le cash-flow. |
+| 🟠 **Partiel** | Tu as déjà payé **une partie** de la dépense, mais il reste un solde à régler. |
+| 🟢 **Payée** | Tout est réglé, somme des paiements = montant total. |
+
+### 4. Saisir des paiements multi-échéances
+
+Une dépense peut être réglée en **1 paiement comptant** ou en **plusieurs
+échéances** (pour les factures fournisseurs payables en 2-3 fois,
+ou les chèques post-datés).
+
+**Trois cas concrets :**
+
+> **Cas 1 — paiement comptant** (achat carburant)
+> Tu crées la dépense (Transport, 80 €), puis ajoutes 1 ligne paiement :
+> *date effective = aujourd'hui, mode = carte*. Statut → **Payée**.
+
+> **Cas 2 — facture fournisseur en 3 fois** (sucre, 600 €)
+> Tu crées la dépense puis ajoutes 3 lignes paiement :
+> *200 € prévu le 15/05, 200 € prévu le 15/06, 200 € prévu le 15/07*
+> (sans date effective). Statut → **Prévu**.
+> Le jour où tu paies réellement la 1ʳᵉ échéance, tu cliques sur le
+> bouton ✓ (« Marquer payé ») dans la fiche détail. Statut → **Partiel**.
+> Quand les 3 sont marquées payées → **Payée**.
+
+> **Cas 3 — dette ouverte sans plan** (réparation imprévue, 350 €)
+> Tu crées la dépense sans aucune ligne paiement. Statut → **À payer**.
+> Tu la verras dans le filtre "À payer" tant que tu n'auras pas
+> programmé son règlement.
+
+### 5. Lire le Tableau de bord Finance
+
+Sur la page **/finance** :
+- **Décaissements du mois** → ce qui a vraiment quitté ton compte ce mois
+- **Engagements du mois** (info sous le KPI) → ce que tu as commandé/engagé ce mois (peut être > décaissements si tu paies plus tard)
+- **Reste à payer** → solde total de tes dettes ouvertes (À payer + Prévu + Partiel)
+- **Échéances dans les 30 j** → les paiements planifiés à venir, avec icône ⚠ si en retard
+
+Sur la page **/dashboard** (Tableau de bord global) :
+- **Enveloppes 50/30/20** : 3 cartes colorées avec barre de progression
+  - Si la barre est verte/blanche → l'enveloppe a encore du budget
+  - Si la barre devient rouge et le solde affiche un montant **négatif** → tu as dépassé l'enveloppe ce mois
+
+### 6. Filtrer la liste des dépenses
+
+Sur **/finance**, deux rangées de boutons au-dessus du tableau :
+- **Statut** : Tous · À payer · Partiel · Prévu · Payée
+- **Enveloppe** : Toutes · Réinvestissement · Charges · Personnel
+
+Tu peux **combiner** les deux (ex : « À payer » + « Charges » → toutes
+les dettes ouvertes en charges fixes). Le compteur de résultats et le
+total « Reste à payer » se recalculent automatiquement sur la sélection.
+
+Cliquer sur **Réinitialiser les filtres** (à droite) revient à la vue
+complète.
+
+### 7. Export comptable CSV
+
+Le bouton **Export CSV** en haut de `/finance` télécharge un fichier
+prêt à envoyer à ton comptable, contenant :
+- Toutes les **factures émises** dans le mois (avec montant HT, client, SIRET)
+- Tous les **paiements clients encaissés**
+- Toutes les **dépenses engagées** (avec catégorie, enveloppe, statut)
+- Tous les **décaissements** réels (paiements effectifs sortis du compte)
+- Un **résumé du mois** : CA encaissé, décaissements, résultat cash flow
+
+Format : `;` séparateur (Excel France), accents UTF-8 BOM (pas de
+caractères cassés à l'ouverture).
 
 ## État du projet
 

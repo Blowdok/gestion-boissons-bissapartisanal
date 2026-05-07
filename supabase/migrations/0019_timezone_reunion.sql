@@ -1,0 +1,28 @@
+-- =============================================================================
+-- Phase 5.3 — Timezone La Réunion
+--
+-- Bissapa est implantée à La Réunion (UTC+4). Postgres sur Supabase tourne
+-- en UTC par défaut, ce qui faisait que `current_date` était en retard de
+-- jusqu'à 4 heures sur la perception locale du Patron : un paiement
+-- enregistré à 22h heure locale (= 18h UTC le même jour) était OK, mais
+-- enregistré à 1h du matin heure locale (= 21h UTC la veille), le système
+-- considérait que `current_date` était hier et marquait le paiement comme
+-- "futur". Conséquence : le dashboard affichait 0 € de décaissement alors
+-- que les paiements du jour étaient bien saisis.
+--
+-- En réglant le timezone par défaut de la base sur 'Indian/Reunion',
+-- TOUTES les fonctions temporelles (`current_date`, `now()`, etc.)
+-- retournent l'heure de La Réunion, ce qui aligne automatiquement les vues
+-- ca_mensuel, decaissements_mensuels, echeances_a_venir,
+-- enveloppes_mensuelles et factures_avec_solde avec ce que voit le patron.
+--
+-- Important : la commande prend effet pour les NOUVELLES sessions. Les
+-- connexions ouvertes au moment de l'application gardent leur timezone
+-- jusqu'à reconnexion. Côté Supabase / PostgREST, les sessions sont
+-- éphémères donc le changement est effectif dès la requête suivante.
+--
+-- À adapter si l'application est un jour déployée dans une autre zone
+-- géographique (Europe/Paris, Africa/Dakar, etc.).
+-- =============================================================================
+
+alter database postgres set timezone to 'Indian/Reunion';

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth/guards";
+import { SOURCE_LABELS, MODE_DEPENSE_LABELS } from "@/lib/domain/source-fonds";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,7 +10,6 @@ const CSV_SEPARATOR = ";"; // standard FR pour Excel
 function csvEscape(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return "";
   const s = String(value);
-  // Echappement RFC 4180 + adapte au separateur ;
   if (s.includes(CSV_SEPARATOR) || s.includes('"') || s.includes("\n")) {
     return `"${s.replace(/"/g, '""')}"`;
   }
@@ -21,25 +21,31 @@ function csvRow(values: (string | number | null | undefined)[]): string {
 }
 
 const CATEGORIE_LABELS: Record<string, string> = {
-  matieres_premieres: "Matières premières",
-  emballage: "Emballage",
-  energie: "Énergie",
-  transport: "Transport",
-  marketing: "Marketing",
+  matieres_premieres: "Matière première",
+  salaire_employe: "Salaire employé",
+  electricite: "Électricité",
+  cotisations_etat: "Cotisation de l'État",
   loyer: "Loyer",
+  logiciel_facturation: "Logiciel facturation",
+  telephone: "Téléphone",
+  transport: "Transport (carburant, réparation)",
   assurance: "Assurance",
-  banque: "Banque",
-  salaires: "Salaires",
-  taxes: "Taxes",
-  fournitures: "Fournitures",
-  autre: "Autre",
+  marketing_communication: "Marketing & communication",
+  autres: "Autres",
 };
 
-const MODE_LABELS: Record<string, string> = {
+const MODE_VENTE_LABELS: Record<string, string> = {
   especes: "Espèces",
   virement: "Virement",
   cheque: "Chèque",
   carte: "Carte",
+};
+
+const STATUT_LABELS: Record<string, string> = {
+  paye: "Payée",
+  partiel: "Partiel",
+  prevu: "Prévu",
+  a_payer: "À payer",
 };
 
 export async function GET(req: Request) {
@@ -55,39 +61,54 @@ export async function GET(req: Request) {
     );
   }
 
-  // Bornes du mois
   const [year, month] = mois.split("-").map(Number);
   const debut = new Date(year, month - 1, 1).toISOString().slice(0, 10);
   const fin = new Date(year, month, 0).toISOString().slice(0, 10);
 
-  const [{ data: factures }, { data: paiements }, { data: depenses }] =
-    await Promise.all([
-      supabase
-        .from("factures")
-        .select(
-          "numero, date_emission, montant_ht, livraisons(client_id, clients(raison_sociale, siret))",
-        )
-        .gte("date_emission", debut)
-        .lte("date_emission", fin)
-        .order("date_emission"),
-      supabase
-        .from("paiements")
-        .select(
-          "date_encaissement, montant, mode, notes, factures(numero, livraisons(clients(raison_sociale)))",
-        )
-        .gte("date_encaissement", debut)
-        .lte("date_encaissement", fin)
-        .order("date_encaissement"),
-      supabase
-        .from("depenses")
-        .select("date, montant, categorie, description")
-        .gte("date", debut)
-        .lte("date", fin)
-        .order("date"),
-    ]);
+  const [
+    { data: factures },
+    { data: paiementsClients },
+    { data: depenses },
+    { data: paiementsDepenses },
+  ] = await Promise.all([
+    supabase
+      .from("factures")
+      .select(
+        "numero, date_emission, montant_ht, livraisons(client_id, clients(raison_sociale, siret))",
+      )
+      .gte("date_emission", debut)
+      .lte("date_emission", fin)
+      .order("date_emission"),
+    supabase
+      .from("paiements")
+      .select(
+        "date_encaissement, montant, mode, notes, factures(numero, livraisons(clients(raison_sociale)))",
+      )
+      .gte("date_encaissement", debut)
+      .lte("date_encaissement", fin)
+      .order("date_encaissement"),
+    // Dépenses engagées dans le mois (depenses_avec_solde inclut le statut)
+    supabase
+      .from("depenses_avec_solde")
+      .select(
+        "date, montant_total, categorie, source_fonds, description, statut_paiement, deja_paye, reste_a_payer",
+      )
+      .gte("date", debut)
+      .lte("date", fin)
+      .order("date"),
+    // Décaissements effectifs dans le mois (jointure dépense pour le contexte)
+    supabase
+      .from("paiements_depense")
+      .select(
+        "date_effectif, montant, mode, note, depenses(categorie, source_fonds, description)",
+      )
+      .not("date_effectif", "is", null)
+      .gte("date_effectif", debut)
+      .lte("date_effectif", fin)
+      .order("date_effectif"),
+  ]);
 
   const lignes: string[] = [];
-  // Ligne 1 : type d'export + bornes
   lignes.push(csvRow(["Export comptable", `Mois : ${mois}`, `Du ${debut} au ${fin}`]));
   lignes.push("");
 
@@ -118,12 +139,12 @@ export async function GET(req: Request) {
   lignes.push(csvRow(["", "", "", "TOTAL", totalFactures.toFixed(2).replace(".", ",")]));
   lignes.push("");
 
-  // SECTION 2 : paiements encaisses
-  lignes.push(csvRow(["=== PAIEMENTS ENCAISSÉS ==="]));
+  // SECTION 2 : paiements clients encaisses
+  lignes.push(csvRow(["=== PAIEMENTS CLIENTS ENCAISSÉS ==="]));
   lignes.push(
     csvRow(["Date", "N° facture", "Client", "Mode", "Montant (€)", "Notes"]),
   );
-  for (const p of paiements ?? []) {
+  for (const p of paiementsClients ?? []) {
     const fac = (Array.isArray(p.factures) ? p.factures[0] : p.factures) as
       | { numero?: string; livraisons?: unknown }
       | undefined;
@@ -138,13 +159,13 @@ export async function GET(req: Request) {
         p.date_encaissement,
         fac?.numero ?? "",
         cli?.raison_sociale ?? "",
-        MODE_LABELS[p.mode] ?? p.mode,
+        MODE_VENTE_LABELS[p.mode] ?? p.mode,
         Number(p.montant).toFixed(2).replace(".", ","),
         p.notes ?? "",
       ]),
     );
   }
-  const totalPaiements = (paiements ?? []).reduce(
+  const totalPaiements = (paiementsClients ?? []).reduce(
     (acc, p) => acc + Number(p.montant),
     0,
   );
@@ -153,33 +174,116 @@ export async function GET(req: Request) {
   );
   lignes.push("");
 
-  // SECTION 3 : depenses
-  lignes.push(csvRow(["=== DÉPENSES ==="]));
-  lignes.push(csvRow(["Date", "Catégorie", "Description", "Montant (€)"]));
+  // SECTION 3 : dépenses engagées dans le mois (engagement, pas cash flow)
+  lignes.push(csvRow(["=== DÉPENSES ENGAGÉES ==="]));
+  lignes.push(
+    csvRow([
+      "Date engagement",
+      "Catégorie",
+      "Enveloppe",
+      "Description",
+      "Statut",
+      "Montant total (€)",
+      "Déjà payé (€)",
+      "Reste à payer (€)",
+    ]),
+  );
   for (const d of depenses ?? []) {
     lignes.push(
       csvRow([
         d.date,
         CATEGORIE_LABELS[d.categorie] ?? d.categorie,
+        SOURCE_LABELS[d.source_fonds as keyof typeof SOURCE_LABELS] ??
+          d.source_fonds,
         d.description ?? "",
-        Number(d.montant).toFixed(2).replace(".", ","),
+        STATUT_LABELS[d.statut_paiement] ?? d.statut_paiement,
+        Number(d.montant_total).toFixed(2).replace(".", ","),
+        Number(d.deja_paye).toFixed(2).replace(".", ","),
+        Number(d.reste_a_payer).toFixed(2).replace(".", ","),
       ]),
     );
   }
-  const totalDepenses = (depenses ?? []).reduce(
-    (acc, d) => acc + Number(d.montant),
+  const totalEngage = (depenses ?? []).reduce(
+    (acc, d) => acc + Number(d.montant_total),
     0,
   );
-  lignes.push(csvRow(["", "", "TOTAL", totalDepenses.toFixed(2).replace(".", ",")]));
+  lignes.push(
+    csvRow([
+      "",
+      "",
+      "",
+      "",
+      "TOTAL",
+      totalEngage.toFixed(2).replace(".", ","),
+      "",
+      "",
+    ]),
+  );
   lignes.push("");
 
-  // SECTION 4 : Resume
+  // SECTION 4 : décaissements effectifs (cash flow réel sur le mois)
+  lignes.push(csvRow(["=== PAIEMENTS DE DÉPENSES (DÉCAISSEMENTS) ==="]));
+  lignes.push(
+    csvRow([
+      "Date paiement",
+      "Catégorie",
+      "Enveloppe",
+      "Description dépense",
+      "Mode",
+      "Note",
+      "Montant (€)",
+    ]),
+  );
+  for (const p of paiementsDepenses ?? []) {
+    const dep = (Array.isArray(p.depenses) ? p.depenses[0] : p.depenses) as
+      | { categorie?: string; source_fonds?: string; description?: string }
+      | undefined;
+    lignes.push(
+      csvRow([
+        p.date_effectif,
+        CATEGORIE_LABELS[dep?.categorie ?? ""] ?? dep?.categorie ?? "",
+        SOURCE_LABELS[
+          (dep?.source_fonds ?? "") as keyof typeof SOURCE_LABELS
+        ] ?? dep?.source_fonds ?? "",
+        dep?.description ?? "",
+        MODE_DEPENSE_LABELS[p.mode as keyof typeof MODE_DEPENSE_LABELS] ??
+          p.mode,
+        p.note ?? "",
+        Number(p.montant).toFixed(2).replace(".", ","),
+      ]),
+    );
+  }
+  const totalDecaisse = (paiementsDepenses ?? []).reduce(
+    (acc, p) => acc + Number(p.montant),
+    0,
+  );
+  lignes.push(
+    csvRow([
+      "",
+      "",
+      "",
+      "",
+      "",
+      "TOTAL",
+      totalDecaisse.toFixed(2).replace(".", ","),
+    ]),
+  );
+  lignes.push("");
+
+  // SECTION 5 : Resume cash flow
   lignes.push(csvRow(["=== RÉSUMÉ DU MOIS ==="]));
   lignes.push(csvRow(["CA encaissé", totalPaiements.toFixed(2).replace(".", ",")]));
-  lignes.push(csvRow(["Dépenses", totalDepenses.toFixed(2).replace(".", ",")]));
   lignes.push(
-    csvRow(["Résultat", (totalPaiements - totalDepenses).toFixed(2).replace(".", ",")]),
+    csvRow(["Décaissements (paiements effectifs)", totalDecaisse.toFixed(2).replace(".", ",")]),
   );
+  lignes.push(
+    csvRow([
+      "Résultat (cash flow)",
+      (totalPaiements - totalDecaisse).toFixed(2).replace(".", ","),
+    ]),
+  );
+  lignes.push("");
+  lignes.push(csvRow(["Dépenses engagées dans le mois (info)", totalEngage.toFixed(2).replace(".", ",")]));
 
   // BOM UTF-8 pour qu'Excel ouvre les accents proprement
   const csv = "﻿" + lignes.join("\n");

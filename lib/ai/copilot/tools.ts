@@ -40,58 +40,139 @@ export function buildCopilotTools(supabase: SupabaseClient) {
       },
     }),
 
-    /** Depenses totales du mois */
+    /** Depenses du mois : engagements + decaissements effectifs */
     getDepensesMois: tool({
       description:
-        "Renvoie le total des depenses d'un mois donne (montant et nombre).",
+        "Renvoie pour un mois donne : les engagements (depenses creees ce mois) et les decaissements effectifs (paiements de depenses qui ont quitte le compte ce mois). Les deux peuvent differer car une depense peut etre engagee un mois et payee plus tard.",
       inputSchema: z.object({ mois: moisSchema }),
       execute: async ({ mois }) => {
-        const { data, error } = await supabase
-          .from("depenses_mensuelles")
-          .select("depenses_total, nb_depenses")
-          .eq("mois", mois)
-          .maybeSingle();
-        if (error) return { erreur: error.message };
-        return data ?? { depenses_total: 0, nb_depenses: 0 };
-      },
-    }),
-
-    /** Resultat = CA encaisse - Depenses */
-    getResultatMois: tool({
-      description:
-        "Renvoie le resultat brut d'un mois (CA encaisse moins depenses) et la repartition automatique 50% reinvestissement / 30% charges / 20% personnel.",
-      inputSchema: z.object({ mois: moisSchema }),
-      execute: async ({ mois }) => {
-        const [{ data: ca }, { data: dep }] = await Promise.all([
+        const [{ data: engage }, { data: decaisse }] = await Promise.all([
           supabase
-            .from("ca_mensuel")
-            .select("ca_encaisse")
+            .from("depenses_engagees_mensuelles")
+            .select("engagement_total, nb_depenses")
             .eq("mois", mois)
             .maybeSingle(),
           supabase
-            .from("depenses_mensuelles")
-            .select("depenses_total")
+            .from("decaissements_mensuels")
+            .select("decaisse, decaisse_programme, decaisse_total, nb_paiements")
             .eq("mois", mois)
             .maybeSingle(),
         ]);
+        return {
+          engagement_total: Number(engage?.engagement_total ?? 0),
+          nb_depenses_engagees: engage?.nb_depenses ?? 0,
+          decaissements_effectifs: Number(decaisse?.decaisse ?? 0),
+          decaissements_programmes: Number(decaisse?.decaisse_programme ?? 0),
+          nb_paiements_effectifs: decaisse?.nb_paiements ?? 0,
+        };
+      },
+    }),
+
+    /** Resultat = CA encaisse - Decaissements (cash flow reel) */
+    getResultatMois: tool({
+      description:
+        "Renvoie le resultat cash-flow d'un mois (CA encaisse moins decaissements effectifs des depenses) et l'etat des 3 enveloppes 50/30/20 (alloue / consomme / solde) : reinvestissement, charges, personnel.",
+      inputSchema: z.object({ mois: moisSchema }),
+      execute: async ({ mois }) => {
+        const [{ data: ca }, { data: dec }, { data: enveloppes }] =
+          await Promise.all([
+            supabase
+              .from("ca_mensuel")
+              .select("ca_encaisse")
+              .eq("mois", mois)
+              .maybeSingle(),
+            supabase
+              .from("decaissements_mensuels")
+              .select("decaisse")
+              .eq("mois", mois)
+              .maybeSingle(),
+            supabase
+              .from("enveloppes_mensuelles")
+              .select("source_fonds, alloue, consomme, solde")
+              .eq("mois", mois),
+          ]);
         const caEncaisse = Number(ca?.ca_encaisse ?? 0);
-        const depenses = Number(dep?.depenses_total ?? 0);
-        const resultat = caEncaisse - depenses;
-        const reinvest = Math.max(0, resultat * 0.5);
-        const charges = Math.max(0, resultat * 0.3);
-        const personnel = Math.max(0, resultat * 0.2);
+        const decaissements = Number(dec?.decaisse ?? 0);
+        const resultat = caEncaisse - decaissements;
         return {
           ca_encaisse: caEncaisse,
-          depenses,
+          decaissements,
           resultat,
-          repartition:
-            resultat > 0
-              ? {
-                  reinvestissement: Number(reinvest.toFixed(2)),
-                  charges: Number(charges.toFixed(2)),
-                  personnel: Number(personnel.toFixed(2)),
-                }
-              : null,
+          enveloppes: (enveloppes ?? []).map((e) => ({
+            enveloppe: e.source_fonds,
+            alloue: Number(e.alloue),
+            consomme: Number(e.consomme),
+            solde: Number(e.solde),
+          })),
+        };
+      },
+    }),
+
+    /** Echeances de paiements depense a venir */
+    getEcheancesAVenir: tool({
+      description:
+        "Liste les echeances de paiements de depenses planifiees dans les N prochains jours (paiements prevus mais pas encore effectues). Utile pour anticiper le cash-flow et eviter les retards.",
+      inputSchema: z.object({
+        dans_jours: z.number().int().min(1).max(180).default(30),
+        limit: z.number().int().min(1).max(50).default(20),
+      }),
+      execute: async ({ dans_jours, limit }) => {
+        const limite = new Date();
+        limite.setDate(limite.getDate() + dans_jours);
+        const limiteStr = limite.toISOString().slice(0, 10);
+
+        const { data, error } = await supabase
+          .from("echeances_a_venir")
+          .select(
+            "id, depense_id, montant, date_prevue, mode, categorie, source_fonds, depense_description, urgence",
+          )
+          .lte("date_prevue", limiteStr)
+          .order("date_prevue", { ascending: true })
+          .limit(limit);
+        if (error) return { erreur: error.message };
+        return {
+          echeances: (data ?? []).map((e) => ({
+            date_prevue: e.date_prevue,
+            montant: Number(e.montant),
+            categorie: e.categorie,
+            enveloppe: e.source_fonds,
+            description: e.depense_description ?? "—",
+            mode: e.mode,
+            urgence: e.urgence, // 'en_retard' | 'imminente' | 'planifiee'
+          })),
+        };
+      },
+    }),
+
+    /** Depenses non soldees */
+    getDepensesNonSoldees: tool({
+      description:
+        "Liste les depenses qui ne sont pas entierement payees (statuts : a_payer, prevu, partiel) avec leur reste a payer. Utile pour voir les dettes fournisseurs ouvertes.",
+      inputSchema: z.object({
+        limit: z.number().int().min(1).max(50).default(15),
+      }),
+      execute: async ({ limit }) => {
+        const { data, error } = await supabase
+          .from("depenses_avec_solde")
+          .select(
+            "id, date, montant_total, deja_paye, reste_a_payer, statut_paiement, categorie, source_fonds, description, prochaine_echeance",
+          )
+          .neq("statut_paiement", "paye")
+          .order("date", { ascending: false })
+          .limit(limit);
+        if (error) return { erreur: error.message };
+        return {
+          depenses: (data ?? []).map((d) => ({
+            date_engagement: d.date,
+            categorie: d.categorie,
+            enveloppe: d.source_fonds,
+            description: d.description ?? "—",
+            montant_total: Number(d.montant_total),
+            deja_paye: Number(d.deja_paye),
+            reste_a_payer: Number(d.reste_a_payer),
+            statut: d.statut_paiement,
+            prochaine_echeance: d.prochaine_echeance,
+          })),
         };
       },
     }),

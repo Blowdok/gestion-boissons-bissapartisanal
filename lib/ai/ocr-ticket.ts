@@ -44,19 +44,18 @@ const SYSTEM_PROMPT = `Tu es un assistant qui extrait les informations d'un tick
 Extrais avec precision :
 - montant : le TOTAL TTC du ticket (pas un sous-total). En euros, en number.
 - date : la date d'achat ou d'emission du ticket, au format YYYY-MM-DD strict.
-- categorie : choisis la plus probable parmi les categories disponibles. Pour Bissapa :
-  * matieres_premieres : fleur d'hibiscus, sucre, gingembre, ananas, fruits, aromes
-  * emballage : bouteilles, bouchons, etiquettes, cartons, films plastiques
-  * energie : eau, electricite, gaz
-  * transport : carburant, peage, location vehicule, livraison
-  * marketing : impression flyers, pub, cadeaux clients, salons
-  * fournitures : papeterie, petit outillage, produits d'entretien
+- categorie : choisis la plus probable parmi les 11 categories disponibles. Definition Bissapa :
+  * matieres_premieres : ingrédients de production (sucre, fleurs d'hibiscus, fruits ananas/gingembre/citron/menthe, arômes), gaz et eau de production, ainsi que tout ce qui sert directement à fabriquer ou conditionner : bouteilles, capsules, bouchons, cartons, étiquettes, films plastiques, affiches, et même les machines/outillage de production
+  * salaire_employe : salaires des employes, charges sociales du personnel
+  * electricite : facture EDF, électricité du local (le gaz/eau de production restent en matieres_premieres)
+  * cotisations_etat : URSSAF, impôts, CFE, taxes
   * loyer : loyer du local
-  * assurance : assurance pro, vehicule
-  * banque : frais bancaires, agios
-  * salaires : payes, charges sociales
-  * taxes : impots, cotisations URSSAF
-  * autre : si rien de pertinent ne correspond
+  * logiciel_facturation : abonnements logiciels (compta, facturation, SaaS pro)
+  * telephone : forfait pro, internet
+  * transport : carburant, péage, réparation du véhicule (l'assurance véhicule est dans la catégorie assurance)
+  * assurance : RC professionnelle, assurance véhicule, multirisque local
+  * marketing_communication : pubs, salons, flyers, communication, cadeaux clients
+  * autres : tout ce qui ne rentre dans aucune catégorie ci-dessus (frais bancaires, divers, imprévus)
 - description : courte (max 200 caracteres). Format ideal : "Nom commerce - nature de l'achat"
 
 Si une info est illisible ou absente, retourne null pour ce champ. Ne jamais inventer.`;
