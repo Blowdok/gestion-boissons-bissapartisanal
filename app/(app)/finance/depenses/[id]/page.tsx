@@ -29,14 +29,23 @@ export const metadata = { title: "Dépense" };
 
 type Props = { params: Promise<{ id: string }> };
 
-const STATUT_BADGE: Record<
+const STATUT_BADGE_CLASS: Record<StatutPaiementDepense, string> = {
+  paye: "border-emerald-300 bg-emerald-100 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200",
+  partiel:
+    "border-amber-300 bg-amber-100 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200",
+  prevu:
+    "border-blue-300 bg-blue-100 text-blue-800 dark:border-blue-700 dark:bg-blue-950/40 dark:text-blue-200",
+  a_payer:
+    "border-red-300 bg-red-100 text-red-800 dark:border-red-700 dark:bg-red-950/40 dark:text-red-200",
+};
+const STATUT_VARIANT: Record<
   StatutPaiementDepense,
   "default" | "secondary" | "destructive" | "outline"
 > = {
-  paye: "default",
-  partiel: "secondary",
+  paye: "outline",
+  partiel: "outline",
   prevu: "outline",
-  a_payer: "destructive",
+  a_payer: "outline",
 };
 
 export default async function DepenseDetailPage({ params }: Props) {
@@ -135,7 +144,10 @@ export default async function DepenseDetailPage({ params }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Badge variant={STATUT_BADGE[statut]}>
+            <Badge
+              variant={STATUT_VARIANT[statut]}
+              className={STATUT_BADGE_CLASS[statut]}
+            >
               {STATUT_DEPENSE_LABELS[statut]}
             </Badge>
           </CardContent>
