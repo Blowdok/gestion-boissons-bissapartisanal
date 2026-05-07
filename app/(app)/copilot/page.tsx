@@ -31,10 +31,7 @@ export default async function CopilotPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Patron Copilot"
-        description="Pose tes questions sur l'activité en langage naturel — ventes, stocks, clients, finance."
-      />
+      <PageHeader title="Patron Copilot" />
       <CopilotChat />
     </div>
   );

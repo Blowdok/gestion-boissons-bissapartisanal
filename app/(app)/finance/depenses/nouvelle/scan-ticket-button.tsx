@@ -17,6 +17,8 @@ export type TicketPrefill = {
 type Props = {
   onResult: (data: TicketPrefill) => void;
   disabled?: boolean;
+  /** Modele de vision a utiliser. Si omis, l'API tombe sur le defaut. */
+  model?: string;
 };
 
 /**
@@ -25,7 +27,7 @@ type Props = {
  * envoie l'image a la server action scanTicket, et appelle onResult
  * avec les valeurs extraites pour pre-remplir le formulaire parent.
  */
-export function ScanTicketButton({ onResult, disabled }: Props) {
+export function ScanTicketButton({ onResult, disabled, model }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState(false);
 
@@ -34,6 +36,7 @@ export function ScanTicketButton({ onResult, disabled }: Props) {
     try {
       const fd = new FormData();
       fd.append("ticket", file);
+      if (model) fd.append("model", model);
       const result = await scanTicket(fd);
       if (!result.ok) {
         toast.error(result.message);

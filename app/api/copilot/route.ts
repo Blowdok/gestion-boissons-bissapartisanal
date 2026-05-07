@@ -23,11 +23,19 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages } = await req.json();
+  const { messages, model } = await req.json();
   const modelMessages = await convertToModelMessages(messages);
 
+  // L'utilisateur peut surcharger le modele depuis le selecteur cote UI.
+  // On valide grossierement le format `provider/model` pour eviter qu'un
+  // body malicieux passe une chaine arbitraire.
+  const modelId =
+    typeof model === "string" && /^[\w.-]+\/[\w.@:-]+$/.test(model)
+      ? model
+      : MODELS.copilot;
+
   const result = streamText({
-    model: openrouter(MODELS.copilot),
+    model: openrouter(modelId),
     system: COPILOT_SYSTEM_PROMPT,
     messages: modelMessages,
     tools: buildCopilotTools(supabase),

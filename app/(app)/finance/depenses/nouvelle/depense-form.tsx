@@ -18,6 +18,17 @@ import {
   type CategorieDepense,
 } from "../schemas";
 import { ScanTicketButton, type TicketPrefill } from "./scan-ticket-button";
+import { ModelPicker } from "@/components/ai/model-picker";
+import { useModelPreference } from "@/lib/ai/use-model-preference";
+import { MODELS } from "@/lib/ai/models";
+
+// Modeles vision suggeres : rapides + multimodaux + accessibles
+const RECOMMENDED_VISION = [
+  MODELS.vision,
+  "google/gemini-2.5-flash-lite",
+  "anthropic/claude-haiku-4.5",
+  "openai/gpt-5-mini",
+];
 
 export function DepenseForm() {
   const [state, formAction, pending] = useActionState<ActionState | undefined, FormData>(
@@ -25,6 +36,11 @@ export function DepenseForm() {
     undefined,
   );
   const fe = state?.fieldErrors ?? {};
+
+  const { model: visionModel, setModel: setVisionModel } = useModelPreference(
+    "vision",
+    MODELS.vision,
+  );
 
   const today = new Date().toISOString().slice(0, 10);
   const [date, setDate] = useState<string>(today);
@@ -44,15 +60,29 @@ export function DepenseForm() {
 
   return (
     <form action={formAction} className="max-w-2xl space-y-6">
-      <div className="flex items-start gap-3 rounded-lg border bg-muted/30 p-4">
-        <div className="flex-1">
-          <p className="text-sm font-medium">Saisie rapide par photo</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Scannez un ticket de caisse pour pré-remplir le formulaire
-            automatiquement.
-          </p>
+      <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex-1">
+            <p className="text-sm font-medium">Saisie rapide par photo</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Scannez un ticket de caisse pour pré-remplir le formulaire
+              automatiquement.
+            </p>
+          </div>
+          <ScanTicketButton
+            onResult={handleScanResult}
+            disabled={pending}
+            model={visionModel}
+          />
         </div>
-        <ScanTicketButton onResult={handleScanResult} disabled={pending} />
+        <ModelPicker
+          value={visionModel}
+          onChange={setVisionModel}
+          capability="vision"
+          disabled={pending}
+          recommended={RECOMMENDED_VISION}
+          hint="L'OCR a besoin d'un modèle multimodal (vision). Liste filtrée sur les modèles compatibles image."
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

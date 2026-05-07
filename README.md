@@ -214,11 +214,19 @@ modèles IA. Avantages :
 
 ### Sélection des modèles
 
-| Cas d'usage | Modèle | Pourquoi |
+| Cas d'usage | Modèle par défaut | Pourquoi |
 |---|---|---|
 | Vision OCR (tickets) | Gemini 2.5 Flash | Très bon en OCR FR + ultra cheap (~0,001 €/image) |
 | Tool-calling (Copilot) | Claude Sonnet 4.6 | Raisonnement structuré, multi-step, excellent FR |
 | Rédaction (relances) | Claude Haiku 4.5 | Rapide, qualité suffisante pour des emails courts |
+
+**Sélecteur de modèle (UI) :** chaque page IA propose un sélecteur qui
+récupère **dynamiquement** la liste OpenRouter (cache serveur 1h) avec
+recherche par mot-clé, filtrage automatique sur la capacité requise
+(`tools` pour le copilot, `vision` pour l'OCR), prix entrée/sortie par
+1M de tokens et taille de contexte affichés sur chaque carte. Le choix
+est mémorisé localement (localStorage, par usage). Pratique pour
+comparer Claude vs GPT vs Gemini sans toucher au code.
 
 ### Features prévues
 

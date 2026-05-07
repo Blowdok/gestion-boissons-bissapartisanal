@@ -71,7 +71,10 @@ export async function scanTicket(
 
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
-    const data = await extraireDonneesTicket(buffer);
+    // Modele eventuellement choisi par l'utilisateur dans le ModelPicker
+    const modelRaw = formData.get("model");
+    const model = typeof modelRaw === "string" ? modelRaw : undefined;
+    const data = await extraireDonneesTicket(buffer, model);
     return { ok: true, data };
   } catch (e) {
     return {

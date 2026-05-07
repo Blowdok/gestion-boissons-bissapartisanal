@@ -63,14 +63,20 @@ Si une info est illisible ou absente, retourne null pour ce champ. Ne jamais inv
 
 export async function extraireDonneesTicket(
   imageBuffer: Buffer,
+  modelId?: string,
 ): Promise<TicketExtraction> {
   const openrouter = getOpenRouter();
   if (!openrouter) {
     throw new Error("OpenRouter non configure (OPENROUTER_API_KEY absente).");
   }
 
+  // Validation legere du format du modele pour eviter qu'un body
+  // malicieux passe une chaine arbitraire ; fallback sur le defaut.
+  const safeModel =
+    modelId && /^[\w.-]+\/[\w.@:-]+$/.test(modelId) ? modelId : MODELS.vision;
+
   const { object } = await generateObject({
-    model: openrouter(MODELS.vision),
+    model: openrouter(safeModel),
     schema: ticketSchema,
     system: SYSTEM_PROMPT,
     messages: [
