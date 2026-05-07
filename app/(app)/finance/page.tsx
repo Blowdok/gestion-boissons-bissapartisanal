@@ -28,20 +28,37 @@ type FinancePageProps = {
   searchParams: Promise<{ statut?: string; enveloppe?: string }>;
 };
 
-// Type-guards pour valider les valeurs reçues dans l'URL
-function isStatut(v: unknown): v is StatutPaiementDepense {
-  return typeof v === "string" && STATUTS_PAIEMENT_DEPENSE.includes(v as StatutPaiementDepense);
+// Type-guards
+function isStatut(v: string): v is StatutPaiementDepense {
+  return STATUTS_PAIEMENT_DEPENSE.includes(v as StatutPaiementDepense);
 }
-function isEnveloppe(v: unknown): v is SourceFonds {
-  return typeof v === "string" && SOURCES_FONDS.includes(v as SourceFonds);
+function isEnveloppe(v: string): v is SourceFonds {
+  return SOURCES_FONDS.includes(v as SourceFonds);
+}
+
+// Parse une chaîne CSV de l'URL en tableau de valeurs valides (filtrées
+// par le type-guard). Tolère les valeurs vides et inconnues.
+function parseCsv<T extends string>(
+  raw: string | undefined,
+  isValid: (v: string) => v is T,
+): T[] {
+  if (!raw) return [];
+  return Array.from(
+    new Set(
+      raw
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0 && isValid(s)) as T[],
+    ),
+  );
 }
 
 export default async function FinancePage({ searchParams }: FinancePageProps) {
   const { supabase } = await requireRole("patron");
   const { statut, enveloppe } = await searchParams;
 
-  const statutFiltre = isStatut(statut) ? statut : null;
-  const enveloppeFiltre = isEnveloppe(enveloppe) ? enveloppe : null;
+  const statutsActifs = parseCsv(statut, isStatut);
+  const enveloppesActives = parseCsv(enveloppe, isEnveloppe);
 
   const moisCourant = new Date().toISOString().slice(0, 7); // YYYY-MM
 
@@ -50,7 +67,7 @@ export default async function FinancePage({ searchParams }: FinancePageProps) {
   dansTrenteJours.setDate(dansTrenteJours.getDate() + 30);
   const limiteEcheances = dansTrenteJours.toISOString().slice(0, 10);
 
-  // Construction de la requête dépenses avec filtres optionnels
+  // Construction de la requête dépenses avec filtres multi-valeurs
   let depensesQuery = supabase
     .from("depenses_avec_solde")
     .select(
@@ -58,8 +75,12 @@ export default async function FinancePage({ searchParams }: FinancePageProps) {
     )
     .order("date", { ascending: false })
     .limit(100);
-  if (statutFiltre) depensesQuery = depensesQuery.eq("statut_paiement", statutFiltre);
-  if (enveloppeFiltre) depensesQuery = depensesQuery.eq("source_fonds", enveloppeFiltre);
+  if (statutsActifs.length > 0) {
+    depensesQuery = depensesQuery.in("statut_paiement", statutsActifs);
+  }
+  if (enveloppesActives.length > 0) {
+    depensesQuery = depensesQuery.in("source_fonds", enveloppesActives);
+  }
 
   const [
     { data: depenses },
@@ -98,19 +119,30 @@ export default async function FinancePage({ searchParams }: FinancePageProps) {
     0,
   );
 
-  // Helper : construit l'URL en surchargeant un seul paramètre (les autres
-  // filtres actifs sont préservés)
-  const hrefWith = (overrides: { statut?: string; enveloppe?: string }) => {
+  // Helpers : retournent l'URL après ajout/retrait d'une valeur sur l'axe
+  // concerné (toggle multi-select). Préservent l'autre axe.
+  const buildHref = (statuts: string[], enveloppes: string[]) => {
     const params = new URLSearchParams();
-    const finalStatut = "statut" in overrides ? overrides.statut : statutFiltre ?? "";
-    const finalEnv = "enveloppe" in overrides ? overrides.enveloppe : enveloppeFiltre ?? "";
-    if (finalStatut) params.set("statut", finalStatut);
-    if (finalEnv) params.set("enveloppe", finalEnv);
+    if (statuts.length > 0) params.set("statut", statuts.join(","));
+    if (enveloppes.length > 0) params.set("enveloppe", enveloppes.join(","));
     const qs = params.toString();
     return qs ? `/finance?${qs}` : "/finance";
   };
+  const toggleStatut = (s: StatutPaiementDepense) => {
+    const next = statutsActifs.includes(s)
+      ? statutsActifs.filter((x) => x !== s)
+      : [...statutsActifs, s];
+    return buildHref(next, enveloppesActives);
+  };
+  const toggleEnveloppe = (e: SourceFonds) => {
+    const next = enveloppesActives.includes(e)
+      ? enveloppesActives.filter((x) => x !== e)
+      : [...enveloppesActives, e];
+    return buildHref(statutsActifs, next);
+  };
 
-  const aDesFiltres = Boolean(statutFiltre || enveloppeFiltre);
+  const aDesFiltres =
+    statutsActifs.length > 0 || enveloppesActives.length > 0;
 
   return (
     <div>
@@ -228,34 +260,28 @@ export default async function FinancePage({ searchParams }: FinancePageProps) {
         ) : null}
       </div>
 
-      {/* Filtres : statut puis enveloppe */}
+      {/* Filtres multi-sélection :
+          - clic sur un filtre inactif → l'ajoute aux filtres actifs
+          - clic sur un filtre actif → le retire
+          - les deux axes (statut & enveloppe) se combinent (ET logique)
+          Quand aucun n'est actif, la liste affiche tout. */}
       <div className="mb-4 space-y-2">
         <FilterRow label="Statut">
-          <FilterButton
-            href={hrefWith({ statut: "" })}
-            active={!statutFiltre}
-            label="Tous"
-          />
           {STATUTS_PAIEMENT_DEPENSE.map((s) => (
             <FilterButton
               key={s}
-              href={hrefWith({ statut: s })}
-              active={statutFiltre === s}
+              href={toggleStatut(s)}
+              active={statutsActifs.includes(s)}
               label={STATUT_DEPENSE_LABELS[s]}
             />
           ))}
         </FilterRow>
         <FilterRow label="Enveloppe">
-          <FilterButton
-            href={hrefWith({ enveloppe: "" })}
-            active={!enveloppeFiltre}
-            label="Toutes"
-          />
           {SOURCES_FONDS.map((s) => (
             <FilterButton
               key={s}
-              href={hrefWith({ enveloppe: s })}
-              active={enveloppeFiltre === s}
+              href={toggleEnveloppe(s)}
+              active={enveloppesActives.includes(s)}
               label={SOURCE_LABELS[s]}
             />
           ))}
