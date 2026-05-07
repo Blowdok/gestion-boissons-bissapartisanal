@@ -4,6 +4,7 @@ import { generateObject } from "ai";
 import { getOpenRouter } from "./client";
 import { MODELS } from "./models";
 import { ENTREPRISE } from "@/lib/config/entreprise";
+import type { NiveauRelance } from "@/lib/domain/niveau-relance";
 
 /**
  * Génération d'un email de relance pour une facture impayée.
@@ -13,39 +14,11 @@ import { ENTREPRISE } from "@/lib/config/entreprise";
  *
  * Modèle utilisé : MODELS.redaction (Claude Haiku 4.5) — rapide, qualité
  * suffisante pour de l'email court, ~0.001 € l'envoi.
+ *
+ * Les constantes/types publics (NIVEAUX_RELANCE, NIVEAU_LABELS,
+ * niveauParAnciennete) sont dans `@/lib/domain/niveau-relance` car
+ * importables côté client. Ce fichier reste server-only.
  */
-
-export const NIVEAUX_RELANCE = [
-  "courtoise",
-  "ferme",
-  "mise_en_demeure",
-] as const;
-export type NiveauRelance = (typeof NIVEAUX_RELANCE)[number];
-
-export const NIVEAU_LABELS: Record<NiveauRelance, string> = {
-  courtoise: "Courtoise",
-  ferme: "Ferme",
-  mise_en_demeure: "Mise en demeure",
-};
-
-export const NIVEAU_DESCRIPTIONS: Record<NiveauRelance, string> = {
-  courtoise:
-    "Simple rappel amical, ton chaleureux. Pour une facture peu en retard.",
-  ferme:
-    "Rappel plus pressant qui mentionne explicitement que la facture est en retard. Évoque les suites possibles sans menacer.",
-  mise_en_demeure:
-    "Préalable à une procédure contentieuse. Mention « mise en demeure », rappel des intérêts de retard légaux, délai de 8 jours, ton ferme et formel.",
-};
-
-/**
- * Suggère un niveau par défaut en fonction de l'ancienneté de la facture.
- * Le Patron peut toujours surcharger via le sélecteur dans la modale.
- */
-export function niveauParAnciennete(jours: number): NiveauRelance {
-  if (jours < 30) return "courtoise";
-  if (jours <= 60) return "ferme";
-  return "mise_en_demeure";
-}
 
 // =============================================================================
 // Schéma de sortie de l'IA

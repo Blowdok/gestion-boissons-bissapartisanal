@@ -39,7 +39,7 @@ import {
   NIVEAU_LABELS,
   niveauParAnciennete,
   type NiveauRelance,
-} from "@/lib/ai/relance";
+} from "@/lib/domain/niveau-relance";
 import { ModelPicker } from "@/components/ai/model-picker";
 import { useModelPreference } from "@/lib/ai/use-model-preference";
 import { MODELS } from "@/lib/ai/models";

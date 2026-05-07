@@ -32,7 +32,10 @@ import { DeletePaiementButton } from "./delete-paiement";
 import { EnvoiEmailButton } from "./envoi-email-button";
 import { RelanceModal } from "./relance-modal";
 import { isAiActive } from "@/lib/ai/client";
-import { NIVEAU_LABELS, type NiveauRelance } from "@/lib/ai/relance";
+import {
+  NIVEAU_LABELS,
+  type NiveauRelance,
+} from "@/lib/domain/niveau-relance";
 
 export const metadata = { title: "Facture" };
 

@@ -3,12 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth/guards";
 import { checkAiActive } from "@/lib/ai/guards";
+import { genererRelance, type RelanceContenu } from "@/lib/ai/relance";
 import {
-  genererRelance,
   niveauParAnciennete,
   type NiveauRelance,
-  type RelanceContenu,
-} from "@/lib/ai/relance";
+} from "@/lib/domain/niveau-relance";
 import { sendRelanceByEmail } from "@/lib/email/send-relance";
 
 const NIVEAUX = ["courtoise", "ferme", "mise_en_demeure"] as const;
