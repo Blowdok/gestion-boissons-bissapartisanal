@@ -403,13 +403,15 @@ function EnveloppeCard({
           style={{ width: `${utilPct}%` }}
         />
       </div>
-      <div className="mt-2 flex justify-between text-xs">
-        <span className="opacity-75">Consommé : {formatEUR(consomme)}</span>
+      <div className="mt-3 flex justify-between text-sm">
+        <span className="opacity-80">
+          Consommé : <span className="font-medium">{formatEUR(consomme)}</span>
+        </span>
         <span
           className={
             enDecouvert
               ? "font-semibold text-destructive"
-              : "font-medium"
+              : "font-semibold"
           }
         >
           Solde : {formatEUR(solde)}
