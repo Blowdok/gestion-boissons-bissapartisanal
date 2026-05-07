@@ -21,18 +21,17 @@ function csvRow(values: (string | number | null | undefined)[]): string {
 }
 
 const CATEGORIE_LABELS: Record<string, string> = {
-  matieres_premieres: "Matières premières",
-  emballage: "Emballage",
-  energie: "Énergie",
-  transport: "Transport",
-  marketing: "Marketing",
+  matieres_premieres: "Matière première",
+  salaire_employe: "Salaire employé",
+  electricite: "Électricité",
+  cotisations_etat: "Cotisation de l'État",
   loyer: "Loyer",
+  logiciel_facturation: "Logiciel facturation",
+  telephone: "Téléphone",
+  transport: "Transport (carburant, réparation)",
   assurance: "Assurance",
-  banque: "Banque",
-  salaires: "Salaires",
-  taxes: "Taxes",
-  fournitures: "Fournitures",
-  autre: "Autre",
+  marketing_communication: "Marketing & communication",
+  autres: "Autres",
 };
 
 const MODE_VENTE_LABELS: Record<string, string> = {

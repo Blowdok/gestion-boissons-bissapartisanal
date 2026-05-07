@@ -4,33 +4,40 @@ import {
   SOURCE_PCT,
   SOURCES_FONDS,
 } from "@/lib/domain/source-fonds";
-import { paiementDepenseSchema } from "@/app/(app)/finance/depenses/schemas";
+import {
+  CATEGORIES_DEPENSE,
+  paiementDepenseSchema,
+} from "@/app/(app)/finance/depenses/schemas";
 
 describe("defaultSourcePourCategorie", () => {
-  it("mappe les achats opérationnels sur réinvestissement", () => {
+  it("mappe la matière première sur réinvestissement", () => {
     expect(defaultSourcePourCategorie("matieres_premieres")).toBe(
       "reinvestissement",
     );
-    expect(defaultSourcePourCategorie("emballage")).toBe("reinvestissement");
-    expect(defaultSourcePourCategorie("marketing")).toBe("reinvestissement");
-    expect(defaultSourcePourCategorie("fournitures")).toBe("reinvestissement");
-    expect(defaultSourcePourCategorie("transport")).toBe("reinvestissement");
   });
 
-  it("mappe les coûts fixes sur charges", () => {
+  it("mappe les frais récurrents sur charges (salaires, énergie, transport, communication, etc.)", () => {
+    expect(defaultSourcePourCategorie("salaire_employe")).toBe("charges");
+    expect(defaultSourcePourCategorie("electricite")).toBe("charges");
+    expect(defaultSourcePourCategorie("cotisations_etat")).toBe("charges");
     expect(defaultSourcePourCategorie("loyer")).toBe("charges");
+    expect(defaultSourcePourCategorie("logiciel_facturation")).toBe("charges");
+    expect(defaultSourcePourCategorie("telephone")).toBe("charges");
+    expect(defaultSourcePourCategorie("transport")).toBe("charges");
     expect(defaultSourcePourCategorie("assurance")).toBe("charges");
-    expect(defaultSourcePourCategorie("energie")).toBe("charges");
-    expect(defaultSourcePourCategorie("banque")).toBe("charges");
-    expect(defaultSourcePourCategorie("taxes")).toBe("charges");
+    expect(defaultSourcePourCategorie("marketing_communication")).toBe(
+      "charges",
+    );
   });
 
-  it("mappe salaires sur personnel", () => {
-    expect(defaultSourcePourCategorie("salaires")).toBe("personnel");
+  it("mappe 'autres' sur réinvestissement (modifiable)", () => {
+    expect(defaultSourcePourCategorie("autres")).toBe("reinvestissement");
   });
 
-  it("mappe 'autre' sur réinvestissement (modifiable)", () => {
-    expect(defaultSourcePourCategorie("autre")).toBe("reinvestissement");
+  it("ne mappe jamais sur personnel par défaut (réservé à la rémunération du patron, choix manuel)", () => {
+    for (const c of CATEGORIES_DEPENSE) {
+      expect(defaultSourcePourCategorie(c)).not.toBe("personnel");
+    }
   });
 });
 

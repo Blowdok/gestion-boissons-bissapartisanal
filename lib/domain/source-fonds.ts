@@ -23,6 +23,19 @@ export const SOURCE_LABELS: Record<SourceFonds, string> = {
   personnel: "Personnel",
 };
 
+/**
+ * Description courte de chaque enveloppe — affichée comme aide à la
+ * saisie pour clarifier ce qu'il convient d'imputer où.
+ */
+export const SOURCE_DESCRIPTIONS: Record<SourceFonds, string> = {
+  reinvestissement:
+    "Achats qui font tourner la production : matières premières, emballages, étiquettes, outillage, machines.",
+  charges:
+    "Frais fixes récurrents : salaires employés, loyer, électricité, cotisations, logiciels, téléphone, transport, communication.",
+  personnel:
+    "Rémunération personnelle du patron — besoins perso et familiaux. Peut aussi servir à payer ponctuellement une charge ou un réinvestissement.",
+};
+
 export const SOURCE_PCT: Record<SourceFonds, number> = {
   reinvestissement: 0.5,
   charges: 0.3,
@@ -39,28 +52,34 @@ export const SOURCE_COLORS: Record<SourceFonds, "emerald" | "amber" | "blue"> = 
 };
 
 /**
- * Mapping catégorie → enveloppe par défaut.
- * Aligné avec le backfill SQL de la migration 0016.
+ * Mapping catégorie → enveloppe par défaut, calé sur la classification
+ * voulue par le patron de Bissapa :
+ *   - Réinvestissement = matière première (englobe ingrédients, gaz/eau
+ *     de prod, emballages, machines)
+ *   - Charges = tout le reste de l'opérationnel récurrent
+ *   - Personnel = rémunération propre du patron (jamais en défaut auto)
+ *
+ * Aligné avec les migrations 0017 (ré-imputation des sources) et 0018
+ * (catégories métier).
  */
 export function defaultSourcePourCategorie(
   categorie: CategorieDepense,
 ): SourceFonds {
   switch (categorie) {
     case "matieres_premieres":
-    case "emballage":
-    case "marketing":
-    case "fournitures":
-    case "transport":
       return "reinvestissement";
+    case "salaire_employe":
+    case "electricite":
+    case "cotisations_etat":
     case "loyer":
+    case "logiciel_facturation":
+    case "telephone":
+    case "transport":
     case "assurance":
-    case "energie":
-    case "banque":
-    case "taxes":
+    case "marketing_communication":
       return "charges";
-    case "salaires":
-      return "personnel";
-    case "autre":
+    case "autres":
+      // Par défaut sur réinvestissement (poste majoritaire), modifiable
       return "reinvestissement";
   }
 }

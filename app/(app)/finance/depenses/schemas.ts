@@ -4,36 +4,52 @@ import {
   SOURCES_FONDS,
 } from "@/lib/domain/source-fonds";
 
+// =============================================================================
+// Catégories métier de Bissapa (alignées sur la migration 0018).
+// L'ordre de la liste détermine l'ordre dans le sélecteur du formulaire.
+// =============================================================================
 export const CATEGORIES_DEPENSE = [
   "matieres_premieres",
-  "emballage",
-  "energie",
-  "transport",
-  "marketing",
+  "salaire_employe",
+  "electricite",
+  "cotisations_etat",
   "loyer",
+  "logiciel_facturation",
+  "telephone",
+  "transport",
   "assurance",
-  "banque",
-  "salaires",
-  "taxes",
-  "fournitures",
-  "autre",
+  "marketing_communication",
+  "autres",
 ] as const;
 
 export type CategorieDepense = (typeof CATEGORIES_DEPENSE)[number];
 
 export const CATEGORIE_LABELS: Record<CategorieDepense, string> = {
-  matieres_premieres: "Matières premières",
-  emballage: "Emballage",
-  energie: "Énergie (eau, élec, gaz)",
-  transport: "Transport / véhicule",
-  marketing: "Marketing / communication",
+  matieres_premieres: "Matière première",
+  salaire_employe: "Salaire employé",
+  electricite: "Électricité",
+  cotisations_etat: "Cotisation de l'État",
   loyer: "Loyer",
+  logiciel_facturation: "Logiciel facturation",
+  telephone: "Téléphone",
+  transport: "Transport (carburant, réparation)",
   assurance: "Assurance",
-  banque: "Frais bancaires",
-  salaires: "Salaires & charges",
-  taxes: "Taxes & impôts",
-  fournitures: "Fournitures diverses",
-  autre: "Autre",
+  marketing_communication: "Marketing & communication",
+  autres: "Autres",
+};
+
+/**
+ * Hint affiché sous la sélection de catégorie pour clarifier ce qu'on y
+ * met (utile pour Emmanuel qui a explicité ce qu'il regroupe sous chaque
+ * étiquette — notamment les ingrédients et fournitures de production qui
+ * vont tous dans Matière première).
+ */
+export const CATEGORIE_HINTS: Partial<Record<CategorieDepense, string>> = {
+  matieres_premieres:
+    "Sucre, fleurs, fruits (ananas, gingembre, citron, menthe), gaz et eau de production, bouteilles, cartons, étiquettes, affiches, machines.",
+  transport: "Carburant et réparation du véhicule (l'assurance est dans Assurance).",
+  assurance: "RC professionnelle, assurance véhicule, multirisque local.",
+  autres: "Tout ce qui ne rentre dans aucune autre catégorie.",
 };
 
 // =============================================================================

@@ -211,14 +211,18 @@ where p.date_effectif is null and p.date_prevue is not null;
 -- Alloué = (CA encaissé − décaissements effectifs du mois) × pct
 -- Consommé = somme des paiements effectifs du mois groupés par source
 -- Solde = alloué − consommé (négatif possible = enveloppe à découvert)
+--
+-- Note : on utilise VALUES + ON (plutôt que UNION ALL + USING) pour
+-- éviter des soucis de typage enum sur certaines versions de PG.
 drop view if exists public.enveloppes_mensuelles;
 create view public.enveloppes_mensuelles
 with (security_invoker = on)
 as
-with sources as (
-  select 'reinvestissement'::public.source_fonds as source_fonds, 0.5::numeric as pct
-  union all select 'charges'::public.source_fonds,         0.3::numeric
-  union all select 'personnel'::public.source_fonds,       0.2::numeric
+with sources(source_fonds, pct) as (
+  values
+    ('reinvestissement'::public.source_fonds, 0.5::numeric),
+    ('charges'::public.source_fonds,         0.3::numeric),
+    ('personnel'::public.source_fonds,       0.2::numeric)
 ),
 consommes as (
   select
@@ -233,9 +237,9 @@ consommes as (
 resultats as (
   select
     coalesce(cm.mois, dm.mois) as mois,
-    greatest(0, coalesce(cm.ca_encaisse, 0) - coalesce(dm.decaisse, 0)) as resultat
+    greatest(0::numeric, coalesce(cm.ca_encaisse, 0) - coalesce(dm.decaisse, 0)) as resultat
   from public.ca_mensuel cm
-  full outer join public.decaissements_mensuels dm using (mois)
+  full outer join public.decaissements_mensuels dm on dm.mois = cm.mois
 )
 select
   r.mois,

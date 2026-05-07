@@ -15,6 +15,7 @@ import {
 import { createDepense, type ActionState } from "../actions";
 import {
   CATEGORIES_DEPENSE,
+  CATEGORIE_HINTS,
   CATEGORIE_LABELS,
   type CategorieDepense,
 } from "../schemas";
@@ -23,6 +24,7 @@ import {
   MODES_PAIEMENT_DEPENSE,
   MODE_DEPENSE_LABELS,
   SOURCES_FONDS,
+  SOURCE_DESCRIPTIONS,
   SOURCE_LABELS,
   type ModePaiementDepense,
   type SourceFonds,
@@ -192,7 +194,7 @@ export function DepenseForm() {
             name="categorie"
             value={categorie}
             onValueChange={(v) =>
-              handleCategorieChange((v ?? "autre") as CategorieDepense)
+              handleCategorieChange((v ?? "autres") as CategorieDepense)
             }
             disabled={pending}
           >
@@ -207,6 +209,11 @@ export function DepenseForm() {
               ))}
             </SelectContent>
           </Select>
+          {CATEGORIE_HINTS[categorie] ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {CATEGORIE_HINTS[categorie]}
+            </p>
+          ) : null}
         </div>
 
         <div>
@@ -232,8 +239,7 @@ export function DepenseForm() {
             </SelectContent>
           </Select>
           <p className="mt-1 text-xs text-muted-foreground">
-            Pré-rempli depuis la catégorie. Modifiable si l&apos;argent est
-            pris ailleurs.
+            {SOURCE_DESCRIPTIONS[sourceFonds]}
           </p>
         </div>
 
