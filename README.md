@@ -24,10 +24,14 @@ production de boissons.
 - Email transactionnel : envoi automatique de la facture au client (Resend)
 - Paiements : multi-modes (espèces, virement, chèque, carte), multi-dates
   (chèques post-datés gérés comme paiements promis)
-- Finance : saisie dépenses avec photo justificatif, répartition automatique
-  50% réinvestissement / 30% charges / 20% personnel
-- Dashboard : KPIs CA / Dépenses / Marge, graphique 12 mois, top 5 clients & produits
-- Export comptable CSV mensuel pour transmission au comptable
+- Finance : saisie dépenses avec photo justificatif, **enveloppes
+  budgétaires** (réinvestissement / charges / personnel) et **paiements
+  multi-échéances** (échéances prévues + règlements effectifs, dette
+  fournisseur ouverte sans date possible)
+- Dashboard : KPIs CA / Décaissements / Résultat, **vue enveloppes**
+  alloué × consommé × solde, graphique 12 mois, top 5 clients & produits
+- Export comptable CSV mensuel : factures, encaissements, dépenses
+  engagées et décaissements effectifs (cash flow réel)
 
 **Quatre rôles** :
 - **Patron** : accès complet, finance, gestion utilisateurs
@@ -152,7 +156,7 @@ lib/
   └── config/                    # Config entreprise (Bissapa)
 
 supabase/
-  ├── migrations/                # 15 migrations SQL versionnées
+  ├── migrations/                # 16 migrations SQL versionnées
   ├── seed.sql                   # Dev : 10 produits + 3 clients fictifs
   ├── seed-production.sql        # Prod : uniquement les 10 produits
   └── cleanup-test-data.sql      # Purge données opérationnelles si besoin

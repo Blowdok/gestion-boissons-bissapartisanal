@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -26,15 +27,34 @@ import {
 } from "@/components/ui/alert-dialog";
 import { formatDate, formatEUR } from "@/lib/utils/format";
 import { CATEGORIE_LABELS, type CategorieDepense } from "./schemas";
+import {
+  SOURCE_LABELS,
+  STATUT_DEPENSE_LABELS,
+  type SourceFonds,
+  type StatutPaiementDepense,
+} from "@/lib/domain/source-fonds";
 import { getJustificatifUrl, supprimerDepense } from "./actions";
 
 type Depense = {
   id: string;
   date: string;
-  montant: number;
+  montant_total: number;
+  reste_a_payer: number;
   categorie: CategorieDepense;
+  source_fonds: SourceFonds;
   description: string | null;
   justificatif_path: string | null;
+  statut_paiement: StatutPaiementDepense;
+};
+
+const STATUT_BADGE: Record<
+  StatutPaiementDepense,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  paye: "default",
+  partiel: "secondary",
+  prevu: "outline",
+  a_payer: "destructive",
 };
 
 export function ListeDepenses({ depenses }: { depenses: Depense[] }) {
@@ -75,8 +95,10 @@ export function ListeDepenses({ depenses }: { depenses: Depense[] }) {
             <TableRow>
               <TableHead className="w-28">Date</TableHead>
               <TableHead>Catégorie</TableHead>
+              <TableHead>Enveloppe</TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="text-right">Montant</TableHead>
+              <TableHead>Statut</TableHead>
               <TableHead className="w-32 text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -84,18 +106,46 @@ export function ListeDepenses({ depenses }: { depenses: Depense[] }) {
             {depenses.map((d) => (
               <TableRow key={d.id}>
                 <TableCell className="text-muted-foreground">
-                  {formatDate(d.date)}
+                  <Link
+                    href={`/finance/depenses/${d.id}`}
+                    className="hover:underline"
+                  >
+                    {formatDate(d.date)}
+                  </Link>
                 </TableCell>
                 <TableCell>
                   <Badge variant="secondary">
                     {CATEGORIE_LABELS[d.categorie]}
                   </Badge>
                 </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="text-xs">
+                    {SOURCE_LABELS[d.source_fonds]}
+                  </Badge>
+                </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {d.description ?? "—"}
+                  <Link
+                    href={`/finance/depenses/${d.id}`}
+                    className="hover:underline"
+                  >
+                    {d.description ?? "—"}
+                  </Link>
                 </TableCell>
                 <TableCell className="text-right font-medium">
-                  {formatEUR(d.montant)}
+                  <div>{formatEUR(d.montant_total)}</div>
+                  {d.reste_a_payer > 0.01 ? (
+                    <div className="text-xs font-normal text-amber-600">
+                      reste {formatEUR(d.reste_a_payer)}
+                    </div>
+                  ) : null}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant={STATUT_BADGE[d.statut_paiement]}
+                    className="text-xs"
+                  >
+                    {STATUT_DEPENSE_LABELS[d.statut_paiement]}
+                  </Badge>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center justify-end gap-1">
@@ -137,8 +187,8 @@ export function ListeDepenses({ depenses }: { depenses: Depense[] }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer cette dépense ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Action irréversible. Le justificatif éventuel sera également
-              supprimé du stockage.
+              Action irréversible. Tous les paiements rattachés et le
+              justificatif éventuel seront également supprimés.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

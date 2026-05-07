@@ -18,7 +18,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/page-header";
 import { formatEUR } from "@/lib/utils/format";
-import { calculerRepartition } from "@/lib/domain/repartition";
+import {
+  SOURCES_FONDS,
+  SOURCE_COLORS,
+  SOURCE_LABELS,
+  SOURCE_PCT,
+  type SourceFonds,
+} from "@/lib/domain/source-fonds";
 import { CaChart } from "./ca-chart";
 
 export const metadata = { title: "Tableau de bord" };
@@ -58,12 +64,20 @@ export default async function DashboardPage() {
 
   const [
     { data: caMensuel },
-    { data: depensesMensuelles },
+    { data: decaissementsMensuels },
+    { data: enveloppesMois },
     { data: topClients },
     { data: topProduits },
   ] = await Promise.all([
     supabase.from("ca_mensuel").select("mois, ca_encaisse, ca_a_encaisser, ca_total"),
-    supabase.from("depenses_mensuelles").select("mois, depenses_total"),
+    // Note : la "dépense" du dashboard est désormais le DÉCAISSEMENT effectif
+    // (paiements_depense.date_effectif) plutôt que l'engagement (depenses.date),
+    // pour refléter le vrai cash flow.
+    supabase.from("decaissements_mensuels").select("mois, decaisse"),
+    supabase
+      .from("enveloppes_mensuelles")
+      .select("source_fonds, alloue, consomme, solde")
+      .eq("mois", moisCourant),
     supabase
       .from("top_clients_mensuel")
       .select("mois, raison_sociale, ca, nb_livraisons")
@@ -78,20 +92,19 @@ export default async function DashboardPage() {
       .limit(5),
   ]);
 
-  // Index par mois pour acces rapide
   const caParMois = new Map(
     (caMensuel ?? []).map((r) => [r.mois, Number(r.ca_encaisse)]),
   );
-  const depParMois = new Map(
-    (depensesMensuelles ?? []).map((r) => [r.mois, Number(r.depenses_total)]),
+  const decaisseParMois = new Map(
+    (decaissementsMensuels ?? []).map((r) => [r.mois, Number(r.decaisse)]),
   );
 
   const caMois = caParMois.get(moisCourant) ?? 0;
   const caMoisM1 = caParMois.get(moisM1) ?? 0;
-  const depMois = depParMois.get(moisCourant) ?? 0;
-  const depMoisM1 = depParMois.get(moisM1) ?? 0;
+  const depMois = decaisseParMois.get(moisCourant) ?? 0;
+  const depMoisM1 = decaisseParMois.get(moisM1) ?? 0;
 
-  const repartitionMois = calculerRepartition(caMois, depMois);
+  const resultatMois = caMois - depMois;
 
   const variationCA =
     caMoisM1 > 0 ? ((caMois - caMoisM1) / caMoisM1) * 100 : null;
@@ -102,8 +115,20 @@ export default async function DashboardPage() {
     mois: m,
     mois_label: moisLabel(m),
     ca: caParMois.get(m) ?? 0,
-    depenses: depParMois.get(m) ?? 0,
+    depenses: decaisseParMois.get(m) ?? 0,
   }));
+
+  // Map des enveloppes par source pour rendre l'accès facile
+  const enveloppes = new Map(
+    (enveloppesMois ?? []).map((e) => [
+      e.source_fonds as SourceFonds,
+      {
+        alloue: Number(e.alloue),
+        consomme: Number(e.consomme),
+        solde: Number(e.solde),
+      },
+    ]),
+  );
 
   return (
     <div>
@@ -121,15 +146,16 @@ export default async function DashboardPage() {
           icon={<Receipt className="size-4" />}
         />
         <KpiCard
-          label="Dépenses"
+          label="Décaissements"
           value={formatEUR(depMois)}
           variation={variationDep}
           inverse
           icon={<TrendingUp className="size-4" />}
+          sub="Paiements effectifs (cash flow)"
         />
         <KpiCard
-          label="Résultat (CA − Dép.)"
-          value={formatEUR(repartitionMois.resultat)}
+          label="Résultat (CA − Décaiss.)"
+          value={formatEUR(resultatMois)}
           icon={<TrendingUp className="size-4" />}
         />
         <KpiCard
@@ -140,39 +166,39 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {/* Repartition 50/30/20 */}
+      {/* Enveloppes 50/30/20 — vue alloué × consommé × solde */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Répartition automatique 50 / 30 / 20</CardTitle>
+          <CardTitle>Enveloppes 50 / 30 / 20</CardTitle>
           <CardDescription>
-            Calcul mensuel sur le résultat (CA encaissé − dépenses)
+            Allocation du résultat du mois vs consommation effective des dépenses.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {repartitionMois.resultat <= 0 ? (
+          {resultatMois <= 0 &&
+          (enveloppesMois ?? []).every((e) => Number(e.consomme) === 0) ? (
             <p className="text-sm text-muted-foreground">
-              Résultat négatif ou nul ce mois — aucune répartition possible.
+              Résultat négatif ou nul ce mois et aucune dépense imputée — pas
+              de répartition possible.
             </p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-3">
-              <RepartitionCard
-                label="Réinvestissement"
-                pct="50%"
-                montant={repartitionMois.reinvestissement}
-                color="emerald"
-              />
-              <RepartitionCard
-                label="Charges"
-                pct="30%"
-                montant={repartitionMois.charges}
-                color="amber"
-              />
-              <RepartitionCard
-                label="Personnel"
-                pct="20%"
-                montant={repartitionMois.personnel}
-                color="blue"
-              />
+              {SOURCES_FONDS.map((s) => {
+                const env = enveloppes.get(s) ?? {
+                  alloue: 0,
+                  consomme: 0,
+                  solde: 0,
+                };
+                return (
+                  <EnveloppeCard
+                    key={s}
+                    source={s}
+                    alloue={env.alloue}
+                    consomme={env.consomme}
+                    solde={env.solde}
+                  />
+                );
+              })}
             </div>
           )}
         </CardContent>
@@ -181,9 +207,9 @@ export default async function DashboardPage() {
       {/* Graphique 12 mois */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Évolution CA / Dépenses (12 derniers mois)</CardTitle>
+          <CardTitle>Évolution CA / Décaissements (12 derniers mois)</CardTitle>
           <CardDescription>
-            Encaissements (vert) vs dépenses (rouge) par mois
+            Encaissements (vert) vs paiements de dépenses effectifs (rouge) par mois
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -296,7 +322,7 @@ function KpiCard({
   value: string;
   sub?: string;
   variation?: number | null;
-  inverse?: boolean; // pour les depenses, +X% est mauvais
+  inverse?: boolean;
   icon?: React.ReactNode;
 }) {
   return (
@@ -335,27 +361,60 @@ function KpiCard({
   );
 }
 
-function RepartitionCard({
-  label,
-  pct,
-  montant,
-  color,
+function EnveloppeCard({
+  source,
+  alloue,
+  consomme,
+  solde,
 }: {
-  label: string;
-  pct: string;
-  montant: number;
-  color: "emerald" | "amber" | "blue";
+  source: SourceFonds;
+  alloue: number;
+  consomme: number;
+  solde: number;
 }) {
+  const color = SOURCE_COLORS[source];
   const tones: Record<typeof color, string> = {
-    emerald: "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-100",
-    amber: "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-100",
+    emerald:
+      "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-100",
+    amber:
+      "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-100",
     blue: "border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-700 dark:bg-blue-950/30 dark:text-blue-100",
   };
+  const pct = SOURCE_PCT[source] * 100;
+  // Pourcentage d'utilisation (consommé / alloué) pour la barre
+  const utilPct =
+    alloue > 0 ? Math.min(100, (consomme / alloue) * 100) : consomme > 0 ? 100 : 0;
+  const enDecouvert = solde < -0.01;
+
   return (
     <div className={`rounded-lg border p-4 ${tones[color]}`}>
-      <p className="text-xs uppercase tracking-wide opacity-75">{label}</p>
-      <p className="mt-1 text-2xl font-semibold">{formatEUR(montant)}</p>
-      <p className="mt-1 text-xs opacity-75">{pct} du résultat</p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs uppercase tracking-wide opacity-75">
+          {SOURCE_LABELS[source]}
+        </p>
+        <span className="text-xs opacity-75">{pct}%</span>
+      </div>
+      <p className="mt-1 text-2xl font-semibold">{formatEUR(alloue)}</p>
+      <div className="mt-2 h-1.5 w-full rounded-full bg-current/15">
+        <div
+          className={`h-full rounded-full ${
+            enDecouvert ? "bg-destructive" : "bg-current"
+          }`}
+          style={{ width: `${utilPct}%` }}
+        />
+      </div>
+      <div className="mt-2 flex justify-between text-xs">
+        <span className="opacity-75">Consommé : {formatEUR(consomme)}</span>
+        <span
+          className={
+            enDecouvert
+              ? "font-semibold text-destructive"
+              : "font-medium"
+          }
+        >
+          Solde : {formatEUR(solde)}
+        </span>
+      </div>
     </div>
   );
 }
