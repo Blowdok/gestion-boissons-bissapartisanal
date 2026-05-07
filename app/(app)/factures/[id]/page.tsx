@@ -30,6 +30,9 @@ import {
 import { PaiementForm } from "./paiement-form";
 import { DeletePaiementButton } from "./delete-paiement";
 import { EnvoiEmailButton } from "./envoi-email-button";
+import { RelanceModal } from "./relance-modal";
+import { isAiActive } from "@/lib/ai/client";
+import { NIVEAU_LABELS, type NiveauRelance } from "@/lib/ai/relance";
 
 export const metadata = { title: "Facture" };
 
@@ -51,7 +54,12 @@ export default async function FactureDetailPage({
 
   if (!facture) notFound();
 
-  const [{ data: client }, { data: livraison }, { data: paiements }] = await Promise.all([
+  const [
+    { data: client },
+    { data: livraison },
+    { data: paiements },
+    { data: relances },
+  ] = await Promise.all([
     supabase
       .from("clients")
       .select("raison_sociale, contact, adresse, ville, code_postal, siret, email, telephone, conditions_paiement")
@@ -69,6 +77,11 @@ export default async function FactureDetailPage({
       .select("id, montant, mode, date_encaissement, notes, created_at, encaisse_par")
       .eq("facture_id", id)
       .order("date_encaissement", { ascending: false }),
+    supabase
+      .from("relances_facture")
+      .select("id, niveau, sujet, envoye_a, envoye_le")
+      .eq("facture_id", id)
+      .order("envoye_le", { ascending: false }),
   ]);
 
   const lignes = livraison?.lignes_livraison ?? [];
@@ -125,6 +138,18 @@ export default async function FactureDetailPage({
               factureId={facture.id}
               clientEmail={client?.email ?? null}
             />
+            {/* Bouton relance : Patron + Adjoint, IA activée, facture impayée,
+                client a un email. Sinon disabled / non rendu. */}
+            {(profile.role === "patron" || profile.role === "adjoint") &&
+            isAiActive() &&
+            Number(facture.solde) > 0.01 ? (
+              <RelanceModal
+                factureId={facture.id}
+                numeroFacture={facture.numero}
+                ancienneteJours={Number(facture.anciennete_jours ?? 0)}
+                hasEmail={Boolean(client?.email)}
+              />
+            ) : null}
             <Link
               href={`/livraisons/${facture.livraison_id}`}
               className={buttonVariants({ variant: "outline" })}
@@ -265,6 +290,45 @@ export default async function FactureDetailPage({
               factureId={facture.id}
               resteAEncaisser={Number(facture.solde)}
             />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* Historique des relances envoyées (V2-AI uniquement, masqué si vide) */}
+      {(relances ?? []).length > 0 ? (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Relances envoyées</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date d&apos;envoi</TableHead>
+                  <TableHead>Niveau</TableHead>
+                  <TableHead>Objet</TableHead>
+                  <TableHead>Destinataire</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(relances ?? []).map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell className="text-muted-foreground">
+                      {formatDateTime(r.envoye_le)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="text-xs">
+                        {NIVEAU_LABELS[r.niveau as NiveauRelance]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm">{r.sujet}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {r.envoye_a}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       ) : null}
