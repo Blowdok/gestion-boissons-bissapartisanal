@@ -146,6 +146,13 @@ export function FacturePDF({ data }: { data: PdfFactureData }) {
             <Text style={pdfStyles.totalLabel}>Sous-total HT</Text>
             <Text style={pdfStyles.totalValue}>{formatEUR(total)}</Text>
           </View>
+          {/* Ligne TTC explicite : le Patron veut qu'elle apparaisse meme en
+              franchise en base (TVA non applicable). TTC = HT dans ce cas,
+              la mention legale art. 293 B est affichee sous le bloc total. */}
+          <View style={pdfStyles.totalRow}>
+            <Text style={pdfStyles.totalLabel}>Total TTC</Text>
+            <Text style={pdfStyles.totalValue}>{formatEUR(total)}</Text>
+          </View>
           {data.montant_encaisse > 0 ? (
             <View style={pdfStyles.totalRow}>
               <Text style={pdfStyles.totalLabel}>Déjà encaissé</Text>

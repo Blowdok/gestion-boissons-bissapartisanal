@@ -23,7 +23,7 @@ export default async function ProduitsAdminPage() {
 
   const { data: produits } = await supabase
     .from("produits")
-    .select("id, nom, gamme, format, seuil_alerte, prix_defaut_ht, actif")
+    .select("id, nom, gamme, format, poids_grammes, seuil_alerte, prix_defaut_ht, actif")
     .order("gamme")
     .order("nom");
 
@@ -58,6 +58,7 @@ export default async function ProduitsAdminPage() {
               <TableHead>Nom</TableHead>
               <TableHead>Gamme</TableHead>
               <TableHead>Format</TableHead>
+              <TableHead className="text-right">Poids</TableHead>
               <TableHead className="text-right">Prix HT</TableHead>
               <TableHead className="text-right">Seuil</TableHead>
               <TableHead>Statut</TableHead>
@@ -73,6 +74,9 @@ export default async function ProduitsAdminPage() {
                     {GAMME_LABELS[p.gamme as Gamme]}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{p.format}</TableCell>
+                  <TableCell className="text-right text-muted-foreground">
+                    {p.poids_grammes != null ? `${p.poids_grammes} g` : "—"}
+                  </TableCell>
                   <TableCell className="text-right">
                     {formatEUR(Number(p.prix_defaut_ht))}
                   </TableCell>
@@ -93,7 +97,7 @@ export default async function ProduitsAdminPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
                   Aucun produit.
                 </TableCell>
               </TableRow>

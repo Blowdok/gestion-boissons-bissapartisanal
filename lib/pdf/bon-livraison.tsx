@@ -11,8 +11,22 @@ const formatDate = (s: string) =>
     year: "numeric",
   }).format(new Date(s));
 
+// Affichage en g sous le kilo, en kg avec 3 decimales au-dela.
+// Le BL sert au transport : avoir le total en kg facilite la pesee camion.
+function formatPoids(grammes: number): string {
+  if (grammes < 1000) return `${grammes} g`;
+  return `${(grammes / 1000).toLocaleString("fr-FR", {
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  })} kg`;
+}
+
 export function BonLivraisonPDF({ data }: { data: PdfBonLivraisonData }) {
   const totalUnites = data.lignes.reduce((acc, l) => acc + l.qte, 0);
+  const totalPoids = data.lignes.reduce(
+    (acc, l) => acc + (l.poids_grammes ?? 0) * l.qte,
+    0,
+  );
   const numeroBL = data.numero ?? `BL-${data.livraison_id.slice(0, 8).toUpperCase()}`;
   const logo = getLogoEntreprise();
 
@@ -100,22 +114,38 @@ export function BonLivraisonPDF({ data }: { data: PdfBonLivraisonData }) {
           <View style={pdfStyles.tableHeader}>
             <Text style={pdfStyles.blColProduit}>Produit</Text>
             <Text style={pdfStyles.blColQte}>Quantité</Text>
+            <Text style={pdfStyles.blColPoidsUnit}>Poids unit.</Text>
+            <Text style={pdfStyles.blColPoidsTotal}>Poids ligne</Text>
           </View>
-          {data.lignes.map((l, i) => (
-            <View key={i} style={pdfStyles.tableRow}>
-              <Text style={pdfStyles.blColProduit}>
-                {l.produit_nom}
-                {l.format ? ` — ${l.format}` : ""}
-              </Text>
-              <Text style={pdfStyles.blColQte}>{l.qte}</Text>
-            </View>
-          ))}
+          {data.lignes.map((l, i) => {
+            const poidsLigne =
+              l.poids_grammes != null ? l.poids_grammes * l.qte : null;
+            return (
+              <View key={i} style={pdfStyles.tableRow}>
+                <Text style={pdfStyles.blColProduit}>
+                  {l.produit_nom}
+                  {l.format ? ` — ${l.format}` : ""}
+                </Text>
+                <Text style={pdfStyles.blColQte}>{l.qte}</Text>
+                <Text style={pdfStyles.blColPoidsUnit}>
+                  {l.poids_grammes != null ? formatPoids(l.poids_grammes) : "—"}
+                </Text>
+                <Text style={pdfStyles.blColPoidsTotal}>
+                  {poidsLigne != null ? formatPoids(poidsLigne) : "—"}
+                </Text>
+              </View>
+            );
+          })}
           <View style={[pdfStyles.tableRow, { backgroundColor: "#f1f5f9" }]}>
             <Text style={[pdfStyles.blColProduit, { fontWeight: "bold" }]}>
               Total
             </Text>
             <Text style={[pdfStyles.blColQte, { fontWeight: "bold" }]}>
               {totalUnites} unités
+            </Text>
+            <Text style={pdfStyles.blColPoidsUnit}> </Text>
+            <Text style={[pdfStyles.blColPoidsTotal, { fontWeight: "bold" }]}>
+              {totalPoids > 0 ? formatPoids(totalPoids) : "—"}
             </Text>
           </View>
         </View>

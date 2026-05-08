@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ type Initial = {
   nom?: string;
   gamme?: Gamme;
   format?: string;
+  poids_grammes?: number;
   seuil_alerte?: number;
   prix_defaut_ht?: number;
 };
@@ -41,6 +42,12 @@ export function ProduitForm({
     undefined,
   );
   const fe = state?.fieldErrors ?? {};
+
+  // Champ controle : evite le warning base-ui FieldControl quand React 19
+  // reinitialise les inputs uncontrolled apres un submit useActionState.
+  const [poidsGrammes, setPoidsGrammes] = useState<string>(
+    initial?.poids_grammes != null ? String(initial.poids_grammes) : "",
+  );
 
   return (
     <form action={formAction} className="max-w-2xl space-y-6">
@@ -92,6 +99,30 @@ export function ProduitForm({
             disabled={pending}
           />
           {fe.format ? <p className="mt-1 text-xs text-destructive">{fe.format}</p> : null}
+        </div>
+
+        <div>
+          <Label htmlFor="poids_grammes">Poids net unitaire (g) *</Label>
+          <Input
+            id="poids_grammes"
+            name="poids_grammes"
+            type="number"
+            min="1"
+            step="1"
+            required
+            value={poidsGrammes}
+            onChange={(e) => setPoidsGrammes(e.target.value)}
+            placeholder="ex : 280"
+            className="mt-2"
+            disabled={pending}
+          />
+          {fe.poids_grammes ? (
+            <p className="mt-1 text-xs text-destructive">{fe.poids_grammes}</p>
+          ) : null}
+          <p className="mt-1 text-xs text-muted-foreground">
+            Poids d&apos;une bouteille pleine, en grammes. Affiché sur le bon
+            de livraison.
+          </p>
         </div>
 
         <div>

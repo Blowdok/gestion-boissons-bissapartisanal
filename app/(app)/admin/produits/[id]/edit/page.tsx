@@ -46,6 +46,7 @@ export default async function EditProduitPage({
           nom: produit.nom,
           gamme: produit.gamme as Gamme,
           format: produit.format,
+          poids_grammes: produit.poids_grammes ?? undefined,
           seuil_alerte: produit.seuil_alerte,
           prix_defaut_ht: Number(produit.prix_defaut_ht),
         }}
