@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "kill-port 3000",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -47,6 +48,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "jsdom": "^29.1.1",
+    "kill-port": "^2.0.1",
     "server-only": "^0.0.1",
     "supabase": "^2.98.2",
     "tailwindcss": "^4",
