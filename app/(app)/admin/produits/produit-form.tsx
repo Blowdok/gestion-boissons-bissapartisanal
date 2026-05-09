@@ -43,10 +43,16 @@ export function ProduitForm({
   );
   const fe = state?.fieldErrors ?? {};
 
-  // Champ controle : evite le warning base-ui FieldControl quand React 19
+  // Champs controles : evitent le warning base-ui FieldControl quand React 19
   // reinitialise les inputs uncontrolled apres un submit useActionState.
   const [poidsGrammes, setPoidsGrammes] = useState<string>(
     initial?.poids_grammes != null ? String(initial.poids_grammes) : "",
+  );
+  const [prixDefautHt, setPrixDefautHt] = useState<string>(
+    initial?.prix_defaut_ht != null ? String(initial.prix_defaut_ht) : "",
+  );
+  const [seuilAlerte, setSeuilAlerte] = useState<string>(
+    initial?.seuil_alerte != null ? String(initial.seuil_alerte) : "50",
   );
 
   return (
@@ -134,7 +140,8 @@ export function ProduitForm({
             step="0.01"
             min="0"
             required
-            defaultValue={initial?.prix_defaut_ht ?? ""}
+            value={prixDefautHt}
+            onChange={(e) => setPrixDefautHt(e.target.value)}
             className="mt-2"
             disabled={pending}
           />
@@ -151,7 +158,8 @@ export function ProduitForm({
             type="number"
             min="0"
             required
-            defaultValue={initial?.seuil_alerte ?? 50}
+            value={seuilAlerte}
+            onChange={(e) => setSeuilAlerte(e.target.value)}
             className="mt-2"
             disabled={pending}
           />
