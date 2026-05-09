@@ -111,7 +111,7 @@ export function ResetForm() {
             Reset effectué. Lignes supprimées :
           </p>
           <ul className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-emerald-900 dark:text-emerald-100">
-            <li>Paiements : {stats.paiements}</li>
+            <li>Paiements clients : {stats.paiements}</li>
             <li>Factures : {stats.factures}</li>
             <li>Livraisons : {stats.livraisons}</li>
             <li>Lignes livraison : {stats.lignes_livraison}</li>
@@ -119,6 +119,7 @@ export function ResetForm() {
             <li>Mouvements stock : {stats.mouvements_stock}</li>
             <li>Ingrédients tracés : {stats.lot_ingredients}</li>
             <li>Dépenses : {stats.depenses}</li>
+            <li>Paiements dépenses : {stats.paiements_depense}</li>
           </ul>
         </div>
       ) : null}
