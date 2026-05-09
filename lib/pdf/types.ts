@@ -17,6 +17,8 @@ export type PdfClient = {
 export type PdfLigne = {
   produit_nom: string;
   format?: string | null;
+  /** Poids unitaire en grammes (utilisé sur le BL ; null = produit historique) */
+  poids_grammes?: number | null;
   qte: number;
   prix_unitaire_ht: number;
 };

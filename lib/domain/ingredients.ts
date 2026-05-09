@@ -1,33 +1,35 @@
 /**
  * Catalogue des ingredients tracables pour les lots Bissapa.
  *
- * - SECS : presents dans 100% des recettes Bissapa, donc obligatoires
- *   a la saisie d'un nouveau lot
- * - NATURELS : optionnels, dependent de la saveur (ananas, gingembre, menthe)
+ * - OBLIGATOIRES : presents dans 100% des recettes Bissapa (fleur de
+ *   bissap + sucre), donc toujours saisis.
+ * - OPTIONNELS : dependent de la saveur :
+ *     - arome (5 parfums sur 8 : passion, framboise, litchi, ananas-coco...)
+ *     - frais : ananas, gingembre, menthe (parfums naturels sans arome)
  *
  * Les Zandjabila n'ont pas de tracabilite ingredient pour l'instant.
  */
 
-export const INGREDIENTS_SECS = [
+export const INGREDIENTS_OBLIGATOIRES = [
   "fleur_bissap",
   "sucre",
-  "arome",
 ] as const;
 
-export const INGREDIENTS_NATURELS = [
+export const INGREDIENTS_OPTIONNELS = [
+  "arome",
   "ananas",
   "gingembre",
   "menthe",
 ] as const;
 
 export const INGREDIENTS = [
-  ...INGREDIENTS_SECS,
-  ...INGREDIENTS_NATURELS,
+  ...INGREDIENTS_OBLIGATOIRES,
+  ...INGREDIENTS_OPTIONNELS,
 ] as const;
 
 export type Ingredient = (typeof INGREDIENTS)[number];
-export type IngredientSec = (typeof INGREDIENTS_SECS)[number];
-export type IngredientNaturel = (typeof INGREDIENTS_NATURELS)[number];
+export type IngredientObligatoire = (typeof INGREDIENTS_OBLIGATOIRES)[number];
+export type IngredientOptionnel = (typeof INGREDIENTS_OPTIONNELS)[number];
 
 export const INGREDIENT_LABELS: Record<Ingredient, string> = {
   fleur_bissap: "Fleur de bissap",
@@ -38,8 +40,8 @@ export const INGREDIENT_LABELS: Record<Ingredient, string> = {
   menthe: "Menthe (fraîche)",
 };
 
-export function isIngredientSec(i: Ingredient): boolean {
-  return (INGREDIENTS_SECS as readonly string[]).includes(i);
+export function isIngredientObligatoire(i: Ingredient): boolean {
+  return (INGREDIENTS_OBLIGATOIRES as readonly string[]).includes(i);
 }
 
 /**

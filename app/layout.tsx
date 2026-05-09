@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider, themeNoFlashScript } from "@/components/theme-provider";
 import "./globals.css";
@@ -34,14 +35,13 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <head>
-        <script
-          // Applique le theme avant la 1ere peinture React pour eviter le flash.
-          // Server Component : le script s'execute, React ne le re-render pas.
-          dangerouslySetInnerHTML={{ __html: themeNoFlashScript }}
-        />
-      </head>
       <body className="min-h-full flex flex-col">
+        {/* Applique le theme avant la 1ere peinture pour eviter le flash.
+            next/script + beforeInteractive : injecte avant l'hydratation
+            sans declencher l'avertissement React 19 sur les <script> inline. */}
+        <Script id="theme-no-flash" strategy="beforeInteractive">
+          {themeNoFlashScript}
+        </Script>
         <ThemeProvider>
           {children}
           <Toaster richColors position="top-right" />

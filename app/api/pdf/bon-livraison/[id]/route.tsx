@@ -26,7 +26,7 @@ export async function GET(
       `
       id, date_prevue, date_livraison, client_id,
       clients(raison_sociale, contact, adresse, ville, code_postal, siret, email, telephone, conditions_paiement),
-      lignes_livraison(qte, prix_unitaire_ht, produits(nom, format))
+      lignes_livraison(qte, prix_unitaire_ht, produits(nom, format, poids_grammes))
       `,
     )
     .eq("id", id)
@@ -56,6 +56,7 @@ export async function GET(
     return {
       produit_nom: p?.nom ?? "—",
       format: p?.format ?? null,
+      poids_grammes: p?.poids_grammes ?? null,
       qte: Number(l.qte),
       prix_unitaire_ht: Number(l.prix_unitaire_ht),
     };

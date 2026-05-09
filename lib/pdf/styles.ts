@@ -115,9 +115,11 @@ export const pdfStyles = StyleSheet.create({
   colQte: { width: "15%", textAlign: "right" },
   colPrix: { width: "20%", textAlign: "right" },
   colTotal: { width: "20%", textAlign: "right" },
-  // Sans prix (BL)
-  blColProduit: { width: "70%" },
-  blColQte: { width: "30%", textAlign: "right" },
+  // Sans prix (BL) — colonnes : Produit, Quantité, Poids unit., Poids ligne
+  blColProduit: { width: "40%" },
+  blColQte: { width: "15%", textAlign: "right" },
+  blColPoidsUnit: { width: "20%", textAlign: "right" },
+  blColPoidsTotal: { width: "25%", textAlign: "right" },
   // Total
   totalBox: {
     marginTop: 10,
