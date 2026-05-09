@@ -7,7 +7,9 @@ import { DepenseForm } from "./depense-form";
 export const metadata = { title: "Nouvelle dépense · Finance" };
 
 export default async function NouvelleDepensePage() {
-  await requireRole("patron");
+  // Adjoint autorise : il peut saisir des depenses sur les enveloppes
+  // Reinvestissement et Charges (le formulaire filtre les options).
+  const { profile } = await requireRole("patron", "adjoint");
   return (
     <div>
       <Link
@@ -19,9 +21,13 @@ export default async function NouvelleDepensePage() {
       </Link>
       <PageHeader
         title="Nouvelle dépense"
-        description="Saisir une dépense de l'entreprise. Le justificatif (photo de ticket / PDF) est optionnel mais recommandé."
+        description={
+          profile.role === "adjoint"
+            ? "Saisir une dépense imputable sur Réinvestissement ou Charges. L'enveloppe Personnel est réservée au Patron."
+            : "Saisir une dépense de l'entreprise. Le justificatif (photo de ticket / PDF) est optionnel mais recommandé."
+        }
       />
-      <DepenseForm />
+      <DepenseForm currentUserRole={profile.role} />
     </div>
   );
 }

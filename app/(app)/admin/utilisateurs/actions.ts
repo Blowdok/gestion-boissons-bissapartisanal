@@ -39,13 +39,13 @@ export async function createUtilisateur(
 
   const { email, nom, role, password } = parsed.data;
 
-  // Garde-fou global : interdit de creer un compte Patron via le formulaire.
-  // Pour donner la qualite de Patron a quelqu'un (succession, associé), il
-  // faut promouvoir un compte EXISTANT via 'Changer en Patron' sur sa fiche.
+  // Garde-fou global : le role 'patron' est reserve au vrai proprietaire,
+  // jamais attribuable via l'UI. Utiliser 'adjoint' pour donner les
+  // pouvoirs etendus a un employe.
   if (role === "patron") {
     return {
       fieldErrors: {
-        role: "Pour creer un Patron, cree d'abord un autre rôle puis promeus le compte via le menu (•••) → « Changer en Patron ».",
+        role: "Le rôle Patron est réservé au propriétaire de l'entreprise. Pour donner les pouvoirs étendus, choisis « Adjoint ».",
       },
     };
   }
@@ -124,6 +124,16 @@ export async function changerRole(id: string, role: Role) {
 
   if (id === profile.id && role !== profile.role) {
     throw new Error("Tu ne peux pas changer ton propre rôle.");
+  }
+
+  // Garde-fou de fond : le role 'patron' est reserve au vrai proprietaire
+  // (Emmanuel). Pour donner les pouvoirs etendus a un employe, on utilise
+  // 'adjoint' (Patron par interim). Si une succession est necessaire, ca
+  // se fait directement en BDD via le SQL Editor de Supabase.
+  if (role === "patron") {
+    throw new Error(
+      "Le rôle Patron ne peut pas être attribué via l'interface. Utilise « Adjoint » pour donner les pouvoirs étendus à un employé.",
+    );
   }
 
   // Garde-fous Adjoint :

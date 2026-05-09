@@ -8,6 +8,7 @@
  */
 
 import type { CategorieDepense } from "@/app/(app)/finance/depenses/schemas";
+import type { Role } from "@/lib/auth/roles";
 
 export const SOURCES_FONDS = [
   "reinvestissement",
@@ -50,6 +51,34 @@ export const SOURCE_COLORS: Record<SourceFonds, "emerald" | "amber" | "blue"> = 
   charges: "amber",
   personnel: "blue",
 };
+
+/**
+ * Enveloppes accessibles selon le rôle.
+ * - Patron : toutes (Réinvestissement, Charges, Personnel)
+ * - Adjoint : opérationnelles uniquement (Réinvestissement + Charges).
+ *   L'enveloppe Personnel reste invisible pour l'Adjoint car elle reflète
+ *   la rémunération privée du Patron — pas du domaine d'un manager
+ *   d'opérations.
+ *
+ * Utilisé côté UI (filtrage du sélecteur de saisie dépense, masquage des
+ * cartes dashboard/finance) et côté serveur (validation des actions).
+ */
+export function sourcesAccessiblesPour(role: Role): readonly SourceFonds[] {
+  if (role === "patron") return SOURCES_FONDS;
+  if (role === "adjoint") return ["reinvestissement", "charges"] as const;
+  return [];
+}
+
+/**
+ * Indique si une source est accessible pour un rôle donné. Utile en
+ * validation côté server actions.
+ */
+export function sourceEstAccessiblePour(
+  source: SourceFonds,
+  role: Role,
+): boolean {
+  return sourcesAccessiblesPour(role).includes(source);
+}
 
 /**
  * Mapping catégorie → enveloppe par défaut, calé sur la classification

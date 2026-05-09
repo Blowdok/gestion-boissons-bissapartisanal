@@ -19,10 +19,10 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/page-header";
 import { formatEUR } from "@/lib/utils/format";
 import {
-  SOURCES_FONDS,
   SOURCE_COLORS,
   SOURCE_LABELS,
   SOURCE_PCT,
+  sourcesAccessiblesPour,
   type SourceFonds,
 } from "@/lib/domain/source-fonds";
 import { CaChart } from "./ca-chart";
@@ -56,7 +56,12 @@ function douzeDerniersMois(): string[] {
 }
 
 export default async function DashboardPage() {
-  const { supabase } = await requireRole("patron");
+  const { profile, supabase } = await requireRole("patron", "adjoint");
+
+  // L'Adjoint voit le dashboard mais sans la carte Personnel.
+  // Les KPIs CA / Décaissements / Résultat restent visibles : ils refletent
+  // l'activite globale, pas de la remuneration privee.
+  const enveloppesAffichees = sourcesAccessiblesPour(profile.role);
 
   const moisCourant = new Date().toISOString().slice(0, 7);
   const moisM1 = moisPrecedent(moisCourant);
@@ -169,9 +174,15 @@ export default async function DashboardPage() {
       {/* Enveloppes 50/30/20 — vue alloué × consommé × solde */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Enveloppes 50 / 30 / 20</CardTitle>
+          <CardTitle>
+            {enveloppesAffichees.length === 3
+              ? "Enveloppes 50 / 30 / 20"
+              : "Enveloppes opérationnelles"}
+          </CardTitle>
           <CardDescription>
-            Allocation du résultat du mois vs consommation effective des dépenses.
+            {enveloppesAffichees.length === 3
+              ? "Allocation du résultat du mois vs consommation effective des dépenses."
+              : "Allocation du résultat sur les enveloppes Réinvestissement et Charges. L'enveloppe Personnel est réservée au Patron."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -182,8 +193,14 @@ export default async function DashboardPage() {
               de répartition possible.
             </p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-3">
-              {SOURCES_FONDS.map((s) => {
+            <div
+              className={`grid gap-4 ${
+                enveloppesAffichees.length === 3
+                  ? "sm:grid-cols-3"
+                  : "sm:grid-cols-2"
+              }`}
+            >
+              {enveloppesAffichees.map((s) => {
                 const env = enveloppes.get(s) ?? {
                   alloue: 0,
                   consomme: 0,

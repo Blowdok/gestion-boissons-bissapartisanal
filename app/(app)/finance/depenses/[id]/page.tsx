@@ -19,6 +19,7 @@ import {
 import {
   SOURCE_LABELS,
   STATUT_DEPENSE_LABELS,
+  sourceEstAccessiblePour,
   type ModePaiementDepense,
   type SourceFonds,
   type StatutPaiementDepense,
@@ -50,7 +51,7 @@ const STATUT_VARIANT: Record<
 
 export default async function DepenseDetailPage({ params }: Props) {
   const { id } = await params;
-  const { supabase } = await requireRole("patron");
+  const { profile, supabase } = await requireRole("patron", "adjoint");
 
   const [{ data: depense }, { data: paiements }] = await Promise.all([
     supabase
@@ -69,6 +70,18 @@ export default async function DepenseDetailPage({ params }: Props) {
   ]);
 
   if (!depense) notFound();
+
+  // L'Adjoint ne peut pas consulter une depense sur l'enveloppe Personnel.
+  // On renvoie 404 (plutot que 403) pour ne pas reveler l'existence de la
+  // depense.
+  if (
+    !sourceEstAccessiblePour(
+      depense.source_fonds as SourceFonds,
+      profile.role,
+    )
+  ) {
+    notFound();
+  }
 
   const statut = depense.statut_paiement as StatutPaiementDepense;
 

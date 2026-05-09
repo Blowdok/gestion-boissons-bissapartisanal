@@ -57,10 +57,14 @@ export function UtilisateurActions({
   const isAdjointActor = currentUserRole === "adjoint";
   // L'Adjoint ne peut pas toucher aux Patron, ni aux autres Adjoints
   const targetIsProtected = isAdjointActor && (role === "patron" || role === "adjoint");
+  // Le role 'patron' est reserve au vrai Patron (Emmanuel) - jamais propose
+  // dans les promotions UI. Pour donner les pouvoirs etendus a un employe,
+  // on utilise 'adjoint' (Patron par interim).
+  const ROLES_PROMOTION_AUTORISES: Role[] = ["adjoint", "fabrication", "livreur"];
   // L'Adjoint ne peut promouvoir que vers Fabrication / Livreur
   const rolesProposables: Role[] = isAdjointActor
     ? (["fabrication", "livreur"] as Role[]).filter((r) => r !== role)
-    : ROLES.filter((r) => r !== role);
+    : ROLES_PROMOTION_AUTORISES.filter((r) => r !== role);
   const peutChangerRole = !isSelf && !targetIsProtected;
   const peutToggleActif = !isSelf && !targetIsProtected;
   const peutSupprimer = !isSelf && currentUserRole === "patron";
@@ -224,11 +228,8 @@ export function UtilisateurActions({
             </AlertDialogTitle>
             <AlertDialogDescription>
               Les permissions seront mises à jour à la prochaine action.
-              {confirmRole === "patron"
-                ? " Le compte aura accès à toutes les données financières et à l'administration."
-                : null}
               {confirmRole === "adjoint"
-                ? " L'Adjoint pourra gérer les opérations et les utilisateurs sans accès à la finance."
+                ? " L'Adjoint (Patron par intérim) pourra gérer l'activité, voir le dashboard et saisir des dépenses sur les enveloppes Réinvestissement et Charges. Il n'aura pas accès à l'enveloppe Personnel ni aux suppressions définitives."
                 : null}
             </AlertDialogDescription>
           </AlertDialogHeader>
