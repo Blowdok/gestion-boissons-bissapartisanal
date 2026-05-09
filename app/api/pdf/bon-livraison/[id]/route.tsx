@@ -3,6 +3,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { requireRole } from "@/lib/auth/guards";
 import { BonLivraisonPDF } from "@/lib/pdf/bon-livraison";
 import type { PdfBonLivraisonData } from "@/lib/pdf/types";
+import { parseLotsUtilises } from "@/lib/domain/lots-utilises";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,7 +27,7 @@ export async function GET(
       `
       id, date_prevue, date_livraison, client_id,
       clients(raison_sociale, contact, adresse, ville, code_postal, siret, email, telephone, conditions_paiement),
-      lignes_livraison(qte, prix_unitaire_ht, produits(nom, format, poids_grammes))
+      lignes_livraison(qte, prix_unitaire_ht, lots_utilises, produits(nom, format, poids_grammes))
       `,
     )
     .eq("id", id)
@@ -53,12 +54,18 @@ export async function GET(
 
   const lignes = (livraison.lignes_livraison ?? []).map((l) => {
     const p = Array.isArray(l.produits) ? l.produits[0] : l.produits;
+    const lots = parseLotsUtilises(l.lots_utilises);
     return {
       produit_nom: p?.nom ?? "—",
       format: p?.format ?? null,
       poids_grammes: p?.poids_grammes ?? null,
       qte: Number(l.qte),
       prix_unitaire_ht: Number(l.prix_unitaire_ht),
+      lots_utilises: lots.map((lot) => ({
+        lot_id: lot.lot_id,
+        numero_lot: lot.numero_lot,
+        qte: lot.qte,
+      })),
     };
   });
 

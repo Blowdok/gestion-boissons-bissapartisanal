@@ -21,6 +21,12 @@ export type PdfLigne = {
   poids_grammes?: number | null;
   qte: number;
   prix_unitaire_ht: number;
+  /** Lots ponctionnés FIFO (BL + facture) — null sur les lignes anciennes */
+  lots_utilises?: Array<{
+    lot_id: string;
+    numero_lot: string | null;
+    qte: number;
+  }> | null;
 };
 
 export type PdfFactureData = {

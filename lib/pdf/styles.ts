@@ -120,6 +120,13 @@ export const pdfStyles = StyleSheet.create({
   blColQte: { width: "15%", textAlign: "right" },
   blColPoidsUnit: { width: "20%", textAlign: "right" },
   blColPoidsTotal: { width: "25%", textAlign: "right" },
+  // Sous-ligne discrete sous le nom du produit (numeros de lot ponctionnes)
+  lotsUtilises: {
+    fontSize: 7,
+    color: "#64748b",
+    marginTop: 2,
+    fontFamily: "Courier",
+  },
   // Total
   totalBox: {
     marginTop: 10,

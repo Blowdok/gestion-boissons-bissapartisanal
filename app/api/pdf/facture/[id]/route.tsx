@@ -3,6 +3,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { requireRole } from "@/lib/auth/guards";
 import { FacturePDF } from "@/lib/pdf/facture";
 import type { PdfFactureData } from "@/lib/pdf/types";
+import { parseLotsUtilises } from "@/lib/domain/lots-utilises";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,7 +39,7 @@ export async function GET(
     supabase
       .from("livraisons")
       .select(
-        "date_livraison, lignes_livraison(qte, prix_unitaire_ht, produits(nom, format))",
+        "date_livraison, lignes_livraison(qte, prix_unitaire_ht, lots_utilises, produits(nom, format))",
       )
       .eq("id", facture.livraison_id)
       .maybeSingle(),
@@ -50,11 +51,17 @@ export async function GET(
 
   const lignes = (livraison?.lignes_livraison ?? []).map((l) => {
     const p = Array.isArray(l.produits) ? l.produits[0] : l.produits;
+    const lots = parseLotsUtilises(l.lots_utilises);
     return {
       produit_nom: p?.nom ?? "—",
       format: p?.format ?? null,
       qte: Number(l.qte),
       prix_unitaire_ht: Number(l.prix_unitaire_ht),
+      lots_utilises: lots.map((lot) => ({
+        lot_id: lot.lot_id,
+        numero_lot: lot.numero_lot,
+        qte: lot.qte,
+      })),
     };
   });
 

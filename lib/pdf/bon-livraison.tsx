@@ -3,6 +3,7 @@ import { ENTREPRISE } from "@/lib/config/entreprise";
 import { getLogoEntreprise } from "./logo";
 import { pdfStyles } from "./styles";
 import type { PdfBonLivraisonData } from "./types";
+import { formatLot } from "@/lib/domain/lots-utilises";
 
 const formatDate = (s: string) =>
   new Intl.DateTimeFormat("fr-FR", {
@@ -120,12 +121,23 @@ export function BonLivraisonPDF({ data }: { data: PdfBonLivraisonData }) {
           {data.lignes.map((l, i) => {
             const poidsLigne =
               l.poids_grammes != null ? l.poids_grammes * l.qte : null;
+            const lots = l.lots_utilises ?? [];
             return (
               <View key={i} style={pdfStyles.tableRow}>
-                <Text style={pdfStyles.blColProduit}>
-                  {l.produit_nom}
-                  {l.format ? ` — ${l.format}` : ""}
-                </Text>
+                <View style={pdfStyles.blColProduit}>
+                  <Text>
+                    {l.produit_nom}
+                    {l.format ? ` — ${l.format}` : ""}
+                  </Text>
+                  {lots.length > 0 ? (
+                    <Text style={pdfStyles.lotsUtilises}>
+                      Lot{lots.length > 1 ? "s" : ""} :{" "}
+                      {lots
+                        .map((lot) => `${formatLot(lot)} (${lot.qte}u)`)
+                        .join(" · ")}
+                    </Text>
+                  ) : null}
+                </View>
                 <Text style={pdfStyles.blColQte}>{l.qte}</Text>
                 <Text style={pdfStyles.blColPoidsUnit}>
                   {l.poids_grammes != null ? formatPoids(l.poids_grammes) : "—"}
