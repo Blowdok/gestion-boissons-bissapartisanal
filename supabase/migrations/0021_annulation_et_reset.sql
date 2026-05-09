@@ -90,8 +90,10 @@ from public.factures f
 join public.livraisons l on l.id = f.livraison_id;
 
 -- 3. Mise a jour des vues finance pour exclure les factures annulees ---------
-drop view if exists public.ca_mensuel;
-create view public.ca_mensuel
+-- CREATE OR REPLACE car les colonnes ne changent pas (juste un join + where).
+-- Necessaire pour preserver enveloppes_mensuelles (0016) qui depend de
+-- ca_mensuel.
+create or replace view public.ca_mensuel
 with (security_invoker = on)
 as
 select
@@ -105,8 +107,7 @@ join public.factures f on f.id = p.facture_id
 where f.annulee_le is null
 group by to_char(p.date_encaissement, 'YYYY-MM');
 
-drop view if exists public.top_clients_mensuel;
-create view public.top_clients_mensuel
+create or replace view public.top_clients_mensuel
 with (security_invoker = on)
 as
 select
@@ -122,8 +123,7 @@ join public.clients c on c.id = l.client_id
 where f.annulee_le is null
 group by to_char(p.date_encaissement, 'YYYY-MM'), l.client_id, c.raison_sociale;
 
-drop view if exists public.top_produits_mensuel;
-create view public.top_produits_mensuel
+create or replace view public.top_produits_mensuel
 with (security_invoker = on)
 as
 select
