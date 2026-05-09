@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth/guards";
 import { lignePaiementSchema, paiementMultiSchema } from "./schemas";
 import { sendFactureByEmail } from "@/lib/email/send-facture";
+import { parseLotsUtilises } from "@/lib/domain/lots-utilises";
 
 export type ActionState = {
   error?: string;
@@ -120,7 +121,7 @@ export async function envoyerFactureParEmail(
     supabase
       .from("livraisons")
       .select(
-        "date_livraison, lignes_livraison(qte, prix_unitaire_ht, produits(nom, format))",
+        "date_livraison, lignes_livraison(qte, prix_unitaire_ht, lots_utilises, produits(nom, format))",
       )
       .eq("id", facture.livraison_id)
       .maybeSingle(),
@@ -132,11 +133,17 @@ export async function envoyerFactureParEmail(
 
   const lignes = (livraison?.lignes_livraison ?? []).map((l) => {
     const p = Array.isArray(l.produits) ? l.produits[0] : l.produits;
+    const lots = parseLotsUtilises(l.lots_utilises);
     return {
       produit_nom: p?.nom ?? "—",
       format: p?.format ?? null,
       qte: Number(l.qte),
       prix_unitaire_ht: Number(l.prix_unitaire_ht),
+      lots_utilises: lots.map((lot) => ({
+        lot_id: lot.lot_id,
+        numero_lot: lot.numero_lot,
+        qte: lot.qte,
+      })),
     };
   });
 

@@ -3,6 +3,7 @@ import { ENTREPRISE } from "@/lib/config/entreprise";
 import { getLogoEntreprise } from "./logo";
 import { pdfStyles } from "./styles";
 import type { PdfFactureData } from "./types";
+import { formatLot } from "@/lib/domain/lots-utilises";
 
 const formatEUR = (n: number) =>
   new Intl.NumberFormat("fr-FR", {
@@ -150,21 +151,34 @@ export function FacturePDF({ data }: { data: PdfFactureData }) {
             <Text style={pdfStyles.colPrix}>Prix unitaire HT</Text>
             <Text style={pdfStyles.colTotal}>Total HT</Text>
           </View>
-          {data.lignes.map((l, i) => (
-            <View key={i} style={pdfStyles.tableRow}>
-              <Text style={pdfStyles.colProduit}>
-                {l.produit_nom}
-                {l.format ? ` — ${l.format}` : ""}
-              </Text>
-              <Text style={pdfStyles.colQte}>{l.qte}</Text>
-              <Text style={pdfStyles.colPrix}>
-                {formatEUR(l.prix_unitaire_ht)}
-              </Text>
-              <Text style={pdfStyles.colTotal}>
-                {formatEUR(l.qte * l.prix_unitaire_ht)}
-              </Text>
-            </View>
-          ))}
+          {data.lignes.map((l, i) => {
+            const lots = l.lots_utilises ?? [];
+            return (
+              <View key={i} style={pdfStyles.tableRow}>
+                <View style={pdfStyles.colProduit}>
+                  <Text>
+                    {l.produit_nom}
+                    {l.format ? ` — ${l.format}` : ""}
+                  </Text>
+                  {lots.length > 0 ? (
+                    <Text style={pdfStyles.lotsUtilises}>
+                      Lot{lots.length > 1 ? "s" : ""} :{" "}
+                      {lots
+                        .map((lot) => `${formatLot(lot)} (${lot.qte}u)`)
+                        .join(" · ")}
+                    </Text>
+                  ) : null}
+                </View>
+                <Text style={pdfStyles.colQte}>{l.qte}</Text>
+                <Text style={pdfStyles.colPrix}>
+                  {formatEUR(l.prix_unitaire_ht)}
+                </Text>
+                <Text style={pdfStyles.colTotal}>
+                  {formatEUR(l.qte * l.prix_unitaire_ht)}
+                </Text>
+              </View>
+            );
+          })}
         </View>
 
         {/* Total */}

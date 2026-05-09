@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/layout/page-header";
 import { formatDate, formatDateTime, formatEUR } from "@/lib/utils/format";
+import { formatLot, parseLotsUtilises } from "@/lib/domain/lots-utilises";
 import {
   STATUT_LABEL,
   STATUT_BADGE_CLASS,
@@ -165,7 +166,7 @@ export default async function LivraisonDetailPage({
               <TableBody>
                 {lignes.map((l) => {
                   const produit = Array.isArray(l.produits) ? l.produits[0] : l.produits;
-                  const lots = (l.lots_utilises as Array<{ lot_id: string; dluo: string; qte: number }> | null) ?? [];
+                  const lots = parseLotsUtilises(l.lots_utilises);
                   return (
                     <TableRow key={l.id}>
                       <TableCell className="font-medium">
@@ -183,9 +184,9 @@ export default async function LivraisonDetailPage({
                                   href={`/stock/lots/${a.lot_id}`}
                                   className="hover:underline"
                                 >
-                                  {a.lot_id.slice(0, 8)}
+                                  Lot {formatLot(a)}
                                 </Link>
-                                {" · "}DLUO {formatDate(a.dluo)} · {a.qte} u.
+                                {" · "}{a.qte} u.
                               </li>
                             ))}
                           </ul>
