@@ -41,11 +41,10 @@ export default async function FacturesPage({
 }: {
   searchParams: SearchParams;
 }) {
-  await requireRole("patron", "livreur");
   const { filtre = "toutes" } = await searchParams;
   const filtreKey = (filtre as FiltreKey) in FILTRES ? (filtre as FiltreKey) : "toutes";
 
-  const { supabase } = await requireRole("patron", "livreur");
+  const { supabase } = await requireRole("patron", "adjoint", "livreur");
 
   let request = supabase
     .from("factures_avec_solde")
