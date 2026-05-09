@@ -120,10 +120,12 @@ export const pdfStyles = StyleSheet.create({
   blColQte: { width: "15%", textAlign: "right" },
   blColPoidsUnit: { width: "20%", textAlign: "right" },
   blColPoidsTotal: { width: "25%", textAlign: "right" },
-  // Sous-ligne discrete sous le nom du produit (numeros de lot ponctionnes)
+  // Sous-ligne sous le nom du produit (numeros de lot ponctionnes).
+  // Couleur foncee (#334155 = slate-700) pour rester lisible meme imprime
+  // en N&B sur du papier ordinaire.
   lotsUtilises: {
-    fontSize: 7,
-    color: "#64748b",
+    fontSize: 8,
+    color: "#334155",
     marginTop: 2,
     fontFamily: "Courier",
   },
