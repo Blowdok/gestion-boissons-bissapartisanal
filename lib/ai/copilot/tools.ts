@@ -238,6 +238,7 @@ export function buildCopilotTools(supabase: SupabaseClient) {
             "numero, date_emission, montant_ht, montant_encaisse, solde, statut_paiement, anciennete_jours, client_id",
           )
           .neq("statut_paiement", "paye")
+          .neq("statut_paiement", "annulee")
           .gte("anciennete_jours", anciennete_min_jours)
           .order("anciennete_jours", { ascending: false })
           .limit(limit);

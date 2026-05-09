@@ -28,6 +28,7 @@ export type GenererBrouillonResult =
         | "no_ai_key"
         | "no_email"
         | "facture_payee"
+        | "facture_annulee"
         | "relance_recente"
         | "erreur"
         | "non_autorise";
@@ -50,13 +51,20 @@ export async function genererBrouillonRelance(
   const { data: facture, error: errF } = await supabase
     .from("factures_avec_solde")
     .select(
-      "id, numero, date_emission, montant_ht, montant_encaisse, solde, anciennete_jours, statut_paiement, client_id",
+      "id, numero, date_emission, montant_ht, montant_encaisse, solde, anciennete_jours, statut_paiement, est_annulee, client_id",
     )
     .eq("id", factureId)
     .maybeSingle();
   if (errF) return { ok: false, reason: "erreur", message: errF.message };
   if (!facture) {
     return { ok: false, reason: "erreur", message: "Facture introuvable." };
+  }
+  if (facture.est_annulee) {
+    return {
+      ok: false,
+      reason: "facture_annulee",
+      message: "Cette facture a été annulée — aucune relance ne peut être envoyée.",
+    };
   }
   if (Number(facture.solde) <= 0.01) {
     return {
@@ -148,6 +156,7 @@ export type EnvoyerRelanceResult =
       reason:
         | "no_email"
         | "facture_payee"
+        | "facture_annulee"
         | "send_failed"
         | "no_api_key"
         | "erreur"
@@ -177,11 +186,18 @@ export async function envoyerRelance(input: {
 
   const { data: facture } = await supabase
     .from("factures_avec_solde")
-    .select("id, solde, client_id")
+    .select("id, solde, client_id, est_annulee")
     .eq("id", input.factureId)
     .maybeSingle();
   if (!facture) {
     return { ok: false, reason: "erreur", message: "Facture introuvable." };
+  }
+  if (facture.est_annulee) {
+    return {
+      ok: false,
+      reason: "facture_annulee",
+      message: "Cette facture a été annulée — aucune relance ne peut être envoyée.",
+    };
   }
   if (Number(facture.solde) <= 0.01) {
     return {
