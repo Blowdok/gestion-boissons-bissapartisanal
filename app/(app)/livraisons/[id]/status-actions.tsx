@@ -227,12 +227,14 @@ export function LivraisonStatusActions({
               onClick={() => {
                 setConfirmSuppression(false);
                 start(async () => {
-                  try {
-                    await supprimerLivraison(id);
-                    // redirect dans l'action -> pas besoin de router.refresh
-                  } catch (e) {
-                    toast.error(`Échec : ${(e as Error).message}`);
+                  const res = await supprimerLivraison(id);
+                  if (!res.ok) {
+                    toast.error(`Échec : ${res.error}`);
+                    return;
                   }
+                  toast.success("Livraison supprimée.");
+                  router.push("/livraisons");
+                  router.refresh();
                 });
               }}
             >

@@ -6,6 +6,10 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth/guards";
 import { ligneSchema, livraisonSchema } from "./schemas";
 
+export type SupprimerLivraisonResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
 const editMetadataSchema = z.object({
   date_prevue: z.string().min(1, "Date requise."),
   livreur_id: z.string().uuid().optional().or(z.literal("")),
@@ -171,21 +175,28 @@ export async function annulerLivraison(id: string) {
   return changerStatutLivraison(id, "annulee");
 }
 
-export async function supprimerLivraison(id: string) {
+export async function supprimerLivraison(
+  id: string,
+): Promise<SupprimerLivraisonResult> {
   // Suppression DEFINITIVE (Patron uniquement, RLS).
   // L'Adjoint ne peut PAS supprimer une livraison (operation rare et sensible).
   // Possible seulement si pas de facture (ON DELETE RESTRICT bloque sinon).
+  // Pattern objet retour (pas de redirect) : evite l'erreur NEXT_REDIRECT
+  // attrapee par le try/catch du composant client. Le client fait son
+  // router.push apres succes.
   const { supabase } = await requireRole("patron");
   const { error } = await supabase.from("livraisons").delete().eq("id", id);
   if (error) {
     if (error.code === "23503") {
-      throw new Error(
-        "Impossible : une facture est rattachee. Annule plutot la livraison pour conserver la trace.",
-      );
+      return {
+        ok: false,
+        error:
+          "Impossible : une facture est rattachee. Annule plutot la livraison pour conserver la trace.",
+      };
     }
-    throw new Error(error.message);
+    return { ok: false, error: error.message };
   }
   revalidatePath("/livraisons");
   revalidatePath("/stock");
-  redirect("/livraisons");
+  return { ok: true };
 }

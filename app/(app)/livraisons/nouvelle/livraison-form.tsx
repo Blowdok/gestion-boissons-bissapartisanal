@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +35,8 @@ type Produit = {
   gamme: string;
   format: string;
   prix_defaut_ht: number;
+  seuil_alerte: number;
+  stock_disponible: number;
 };
 type Tarif = { client_id: string; produit_id: string; prix_ht: number };
 type Livreur = { id: string; nom: string };
@@ -76,6 +78,13 @@ export function LivraisonForm({
   }, [clientId, produits, tarifs]);
 
   const total = lignes.reduce((acc, l) => acc + l.qte * l.prix_unitaire_ht, 0);
+
+  // Bloque le submit si au moins une ligne depasse le stock dispo (le trigger
+  // SQL bloquerait de toute facon, autant prevenir cote UI).
+  const aLigneInvalide = lignes.some((l) => {
+    const p = produits.find((pp) => pp.id === l.produit_id);
+    return p ? l.qte > p.stock_disponible : false;
+  });
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -228,6 +237,12 @@ export function LivraisonForm({
                   const dispo = produits.filter(
                     (p) => p.id === l.produit_id || !lignes.some((ll, i) => ll.produit_id === p.id && i !== index),
                   );
+                  const produit = produits.find((p) => p.id === l.produit_id);
+                  const stockDispo = produit?.stock_disponible ?? 0;
+                  const seuil = produit?.seuil_alerte ?? 0;
+                  const depasseStock = produit ? l.qte > stockDispo : false;
+                  const passeSousSeuil =
+                    produit && !depasseStock && stockDispo - l.qte < seuil;
                   return (
                     <TableRow key={index}>
                       <TableCell>
@@ -242,6 +257,9 @@ export function LivraisonForm({
                             {dispo.map((p) => (
                               <SelectItem key={p.id} value={p.id}>
                                 {p.nom} — {GAMME_LABEL[p.gamme] ?? p.gamme} {p.format}
+                                <span className="ml-2 text-xs text-muted-foreground">
+                                  · {p.stock_disponible} dispo
+                                </span>
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -256,8 +274,31 @@ export function LivraisonForm({
                           onChange={(e) =>
                             updateLigne(index, { qte: Number(e.target.value) || 0 })
                           }
-                          className="text-right"
+                          className={`text-right ${
+                            depasseStock
+                              ? "border-destructive focus-visible:ring-destructive/40"
+                              : passeSousSeuil
+                                ? "border-amber-500 focus-visible:ring-amber-500/40"
+                                : ""
+                          }`}
+                          aria-invalid={depasseStock}
                         />
+                        {depasseStock ? (
+                          <p className="mt-1 flex items-center gap-1 text-[11px] text-destructive">
+                            <AlertTriangle className="size-3" />
+                            Stock insuffisant : {stockDispo} dispo
+                          </p>
+                        ) : passeSousSeuil ? (
+                          <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-700 dark:text-amber-500">
+                            <AlertTriangle className="size-3" />
+                            Passera sous le seuil ({seuil}) — restera{" "}
+                            {stockDispo - l.qte}
+                          </p>
+                        ) : produit ? (
+                          <p className="mt-1 text-[11px] text-muted-foreground">
+                            {stockDispo} dispo · restera {stockDispo - l.qte}
+                          </p>
+                        ) : null}
                       </TableCell>
                       <TableCell>
                         <Input
@@ -319,8 +360,18 @@ export function LivraisonForm({
         </p>
       ) : null}
 
+      {aLigneInvalide ? (
+        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          Au moins une ligne dépasse le stock disponible. Corrige les
+          quantités avant de créer la livraison.
+        </p>
+      ) : null}
+
       <div className="flex justify-end">
-        <Button type="submit" disabled={pending || lignes.length === 0}>
+        <Button
+          type="submit"
+          disabled={pending || lignes.length === 0 || aLigneInvalide}
+        >
           {pending ? "Création…" : "Créer la livraison"}
         </Button>
       </div>
