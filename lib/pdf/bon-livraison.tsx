@@ -4,23 +4,10 @@ import { getLogoEntreprise } from "./logo";
 import { pdfStyles } from "./styles";
 import type { PdfBonLivraisonData } from "./types";
 import { formatLot } from "@/lib/domain/lots-utilises";
-
-const formatDate = (s: string) =>
-  new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(new Date(s));
-
-// Affichage en g sous le kilo, en kg avec 3 decimales au-dela.
-// Le BL sert au transport : avoir le total en kg facilite la pesee camion.
-function formatPoids(grammes: number): string {
-  if (grammes < 1000) return `${grammes} g`;
-  return `${(grammes / 1000).toLocaleString("fr-FR", {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
-  })} kg`;
-}
+import {
+  formatDatePdf as formatDate,
+  formatPoidsPdf as formatPoids,
+} from "./format";
 
 export function BonLivraisonPDF({ data }: { data: PdfBonLivraisonData }) {
   const totalUnites = data.lignes.reduce((acc, l) => acc + l.qte, 0);

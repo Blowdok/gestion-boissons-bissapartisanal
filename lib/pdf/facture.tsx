@@ -4,21 +4,7 @@ import { getLogoEntreprise } from "./logo";
 import { pdfStyles } from "./styles";
 import type { PdfFactureData } from "./types";
 import { formatLot } from "@/lib/domain/lots-utilises";
-
-const formatEUR = (n: number) =>
-  new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n);
-
-const formatDate = (s: string) =>
-  new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(new Date(s));
+import { formatEUR, formatDatePdf as formatDate } from "./format";
 
 export function FacturePDF({ data }: { data: PdfFactureData }) {
   const total = data.montant_ht;
