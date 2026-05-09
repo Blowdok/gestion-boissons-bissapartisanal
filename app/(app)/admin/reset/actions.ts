@@ -12,6 +12,7 @@ export type ResetStats = {
   lot_ingredients: number;
   lots: number;
   depenses: number;
+  paiements_depense: number;
 };
 
 // =============================================================================
