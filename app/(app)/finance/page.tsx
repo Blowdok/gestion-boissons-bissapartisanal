@@ -18,6 +18,7 @@ import {
   SOURCE_LABELS,
   STATUTS_PAIEMENT_DEPENSE,
   STATUT_DEPENSE_LABELS,
+  sourcesAccessiblesPour,
   type SourceFonds,
   type StatutPaiementDepense,
 } from "@/lib/domain/source-fonds";
@@ -54,11 +55,19 @@ function parseCsv<T extends string>(
 }
 
 export default async function FinancePage({ searchParams }: FinancePageProps) {
-  const { supabase } = await requireRole("patron");
+  const { profile, supabase } = await requireRole("patron", "adjoint");
   const { statut, enveloppe } = await searchParams;
 
+  // L'Adjoint ne voit que les enveloppes operationnelles (Reinvestissement,
+  // Charges). L'enveloppe Personnel reste invisible pour lui partout.
+  const enveloppesAutorisees = sourcesAccessiblesPour(profile.role);
+  const peutVoirPersonnel = enveloppesAutorisees.includes("personnel");
+  const peutExporter = profile.role === "patron";
+
   const statutsActifs = parseCsv(statut, isStatut);
-  const enveloppesActives = parseCsv(enveloppe, isEnveloppe);
+  const enveloppesActives = parseCsv(enveloppe, isEnveloppe).filter((e) =>
+    enveloppesAutorisees.includes(e),
+  );
 
   const moisCourant = new Date().toISOString().slice(0, 7); // YYYY-MM
 
@@ -80,6 +89,13 @@ export default async function FinancePage({ searchParams }: FinancePageProps) {
   }
   if (enveloppesActives.length > 0) {
     depensesQuery = depensesQuery.in("source_fonds", enveloppesActives);
+  } else if (!peutVoirPersonnel) {
+    // Adjoint sans filtre explicite : on cache quand meme les depenses
+    // sur l'enveloppe Personnel
+    depensesQuery = depensesQuery.in(
+      "source_fonds",
+      enveloppesAutorisees as unknown as string[],
+    );
   }
 
   const [
@@ -148,16 +164,22 @@ export default async function FinancePage({ searchParams }: FinancePageProps) {
     <div>
       <PageHeader
         title="Finance"
-        description="Saisie des dépenses, suivi du compte d'exploitation et exports comptables."
+        description={
+          peutVoirPersonnel
+            ? "Saisie des dépenses, suivi du compte d'exploitation et exports comptables."
+            : "Dépenses opérationnelles (Réinvestissement et Charges). L'enveloppe Personnel n'est pas accessible avec ton rôle."
+        }
         actions={
           <>
-            <Link
-              href={`/api/export/comptable?mois=${moisCourant}`}
-              className={buttonVariants({ variant: "outline" })}
-            >
-              <Download className="size-4" />
-              Export CSV ({moisCourant})
-            </Link>
+            {peutExporter ? (
+              <Link
+                href={`/api/export/comptable?mois=${moisCourant}`}
+                className={buttonVariants({ variant: "outline" })}
+              >
+                <Download className="size-4" />
+                Export CSV ({moisCourant})
+              </Link>
+            ) : null}
             <Link
               href="/finance/depenses/nouvelle"
               className={buttonVariants({ size: "default" })}
@@ -277,7 +299,7 @@ export default async function FinancePage({ searchParams }: FinancePageProps) {
           ))}
         </FilterRow>
         <FilterRow label="Enveloppe">
-          {SOURCES_FONDS.map((s) => (
+          {enveloppesAutorisees.map((s) => (
             <FilterButton
               key={s}
               href={toggleEnveloppe(s)}
@@ -303,10 +325,17 @@ export default async function FinancePage({ searchParams }: FinancePageProps) {
       />
 
       {/* Légende discrète sur les badges enveloppe (utile pour le patron) */}
-      <p className="mt-4 text-xs text-muted-foreground">
-        Enveloppes : {SOURCE_LABELS.reinvestissement} 50% ·{" "}
-        {SOURCE_LABELS.charges} 30% · {SOURCE_LABELS.personnel} 20%
-      </p>
+      {peutVoirPersonnel ? (
+        <p className="mt-4 text-xs text-muted-foreground">
+          Enveloppes : {SOURCE_LABELS.reinvestissement} 50% ·{" "}
+          {SOURCE_LABELS.charges} 30% · {SOURCE_LABELS.personnel} 20%
+        </p>
+      ) : (
+        <p className="mt-4 text-xs text-muted-foreground">
+          Enveloppes accessibles : {SOURCE_LABELS.reinvestissement} ·{" "}
+          {SOURCE_LABELS.charges}
+        </p>
+      )}
     </div>
   );
 }

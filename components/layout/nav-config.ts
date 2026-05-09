@@ -26,7 +26,7 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/dashboard",
     label: "Tableau de bord",
     icon: LayoutDashboard,
-    roles: ["patron"],
+    roles: ["patron", "adjoint"],
   },
   {
     href: "/admin/produits",
@@ -74,7 +74,7 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/finance",
     label: "Finance",
     icon: Coins,
-    roles: ["patron"],
+    roles: ["patron", "adjoint"],
   },
   {
     href: "/admin",

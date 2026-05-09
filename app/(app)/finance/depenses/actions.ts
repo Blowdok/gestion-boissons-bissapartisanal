@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth/guards";
 import { depenseSchema, paiementDepenseSchema } from "./schemas";
+import { sourceEstAccessiblePour } from "@/lib/domain/source-fonds";
 
 export type ActionState = {
   error?: string;
@@ -33,7 +34,7 @@ export async function createDepense(
   _prev: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
-  const { supabase, user } = await requireRole("patron");
+  const { supabase, user, profile } = await requireRole("patron", "adjoint");
 
   // Champs simples de la dépense
   const baseRaw = {
@@ -46,6 +47,17 @@ export async function createDepense(
   const parsed = depenseSchema.safeParse(baseRaw);
   if (!parsed.success) {
     return { fieldErrors: fieldErrors(parsed.error) };
+  }
+
+  // Garde-fou serveur : l'Adjoint ne peut pas piocher dans Personnel.
+  // Defense en profondeur en plus du filtrage UI.
+  if (!sourceEstAccessiblePour(parsed.data.source_fonds, profile.role)) {
+    return {
+      fieldErrors: {
+        source_fonds:
+          "Cette enveloppe n'est pas accessible avec ton rôle. Choisis Réinvestissement ou Charges.",
+      },
+    };
   }
 
   // Paiements initiaux (optionnels, sérialisés en JSON par le client)
@@ -206,7 +218,7 @@ export async function supprimerDepense(id: string) {
 // URL signée temporaire pour visualiser un justificatif
 // =============================================================================
 export async function getJustificatifUrl(path: string): Promise<string | null> {
-  const { supabase } = await requireRole("patron");
+  const { supabase } = await requireRole("patron", "adjoint");
   const { data, error } = await supabase.storage
     .from("justificatifs")
     .createSignedUrl(path, 60 * 5);
@@ -221,7 +233,7 @@ export async function ajouterPaiementDepense(
   _prev: ActionState | undefined,
   formData: FormData,
 ): Promise<ActionState> {
-  const { supabase, user } = await requireRole("patron");
+  const { supabase, user, profile } = await requireRole("patron", "adjoint");
 
   const depense_id = formData.get("depense_id");
   if (typeof depense_id !== "string" || !depense_id) {
@@ -239,11 +251,12 @@ export async function ajouterPaiementDepense(
     return { fieldErrors: fieldErrors(parsed.error) };
   }
 
-  // Vérifie que le paiement ne fait pas dépasser le montant total
+  // Vérifie que le paiement ne fait pas dépasser le montant total +
+  // que l'Adjoint ne touche pas a une depense d'enveloppe Personnel
   const [{ data: dep }, { data: paiementsExistants }] = await Promise.all([
     supabase
       .from("depenses")
-      .select("montant")
+      .select("montant, source_fonds")
       .eq("id", depense_id)
       .maybeSingle(),
     supabase
@@ -253,6 +266,16 @@ export async function ajouterPaiementDepense(
   ]);
 
   if (!dep) return { error: "Dépense introuvable." };
+
+  if (
+    profile.role === "adjoint" &&
+    !sourceEstAccessiblePour(dep.source_fonds, "adjoint")
+  ) {
+    return {
+      error:
+        "Cette dépense est imputée sur l'enveloppe Personnel : seul le Patron peut y enregistrer un paiement.",
+    };
+  }
   const dejaProgramme = (paiementsExistants ?? []).reduce(
     (acc, p) => acc + Number(p.montant),
     0,
@@ -287,7 +310,7 @@ export async function marquerPaiementPaye(
   paiement_id: string,
   date_effectif: string,
 ) {
-  const { supabase } = await requireRole("patron");
+  const { supabase, profile } = await requireRole("patron", "adjoint");
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date_effectif)) {
     throw new Error("Date invalide (format attendu : YYYY-MM-DD).");
@@ -295,7 +318,7 @@ export async function marquerPaiementPaye(
 
   const { data: paiement, error: errFetch } = await supabase
     .from("paiements_depense")
-    .select("depense_id, date_effectif")
+    .select("depense_id, date_effectif, depenses(source_fonds)")
     .eq("id", paiement_id)
     .maybeSingle();
 
@@ -303,6 +326,20 @@ export async function marquerPaiementPaye(
   if (!paiement) throw new Error("Paiement introuvable.");
   if (paiement.date_effectif) {
     throw new Error("Ce paiement est déjà marqué comme payé.");
+  }
+
+  // Adjoint ne touche pas aux dépenses Personnel
+  const dep = Array.isArray(paiement.depenses)
+    ? paiement.depenses[0]
+    : paiement.depenses;
+  if (
+    profile.role === "adjoint" &&
+    dep &&
+    !sourceEstAccessiblePour(dep.source_fonds, "adjoint")
+  ) {
+    throw new Error(
+      "Cette dépense est imputée sur l'enveloppe Personnel : seul le Patron peut la marquer payée.",
+    );
   }
 
   const { error } = await supabase

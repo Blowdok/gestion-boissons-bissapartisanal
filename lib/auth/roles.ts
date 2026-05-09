@@ -11,7 +11,7 @@ export const ROLE_LABELS: Record<Role, string> = {
 
 export const ROLE_HOME: Record<Role, string> = {
   patron: "/dashboard",
-  adjoint: "/livraisons",
+  adjoint: "/dashboard",
   fabrication: "/stock",
   livreur: "/livraisons/tournee",
 };

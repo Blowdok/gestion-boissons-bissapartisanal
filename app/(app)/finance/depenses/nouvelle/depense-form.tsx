@@ -27,12 +27,13 @@ import {
   defaultSourcePourCategorie,
   MODES_PAIEMENT_DEPENSE,
   MODE_DEPENSE_LABELS,
-  SOURCES_FONDS,
+  sourcesAccessiblesPour,
   SOURCE_DESCRIPTIONS,
   SOURCE_LABELS,
   type ModePaiementDepense,
   type SourceFonds,
 } from "@/lib/domain/source-fonds";
+import type { Role } from "@/lib/auth/roles";
 
 // Modeles vision suggeres : rapides + multimodaux + accessibles
 const RECOMMENDED_VISION = [
@@ -61,7 +62,7 @@ const newLigne = (montant = ""): PaiementLigne => ({
   note: "",
 });
 
-export function DepenseForm() {
+export function DepenseForm({ currentUserRole }: { currentUserRole: Role }) {
   const [state, formAction, pending] = useActionState<
     ActionState | undefined,
     FormData
@@ -73,13 +74,26 @@ export function DepenseForm() {
     MODELS.vision,
   );
 
+  // Liste des enveloppes selectionnables : Adjoint -> 2 enveloppes
+  // operationnelles (Reinvestissement + Charges), Patron -> les 3.
+  const sourcesProposables = sourcesAccessiblesPour(currentUserRole);
+
   const today = new Date().toISOString().slice(0, 10);
   const [date, setDate] = useState<string>(today);
   const [montant, setMontant] = useState<string>("");
   const [categorie, setCategorie] =
     useState<CategorieDepense>("matieres_premieres");
+
+  // Pour l'Adjoint, si la source par defaut de la categorie est 'personnel'
+  // (cas autres), on retombe sur 'reinvestissement' (premiere accessible).
+  const sourceParDefaut = (cat: CategorieDepense): SourceFonds => {
+    const candidate = defaultSourcePourCategorie(cat);
+    if (sourcesProposables.includes(candidate)) return candidate;
+    return sourcesProposables[0];
+  };
+
   const [sourceFonds, setSourceFonds] = useState<SourceFonds>(
-    defaultSourcePourCategorie("matieres_premieres"),
+    sourceParDefaut("matieres_premieres"),
   );
   // Permet de savoir si l'utilisateur a explicitement modifié la source
   // (sinon on continue à la synchroniser avec la catégorie)
@@ -92,7 +106,7 @@ export function DepenseForm() {
   const handleCategorieChange = (v: CategorieDepense) => {
     setCategorie(v);
     if (!sourceManuelle) {
-      setSourceFonds(defaultSourcePourCategorie(v));
+      setSourceFonds(sourceParDefaut(v));
     }
   };
 
@@ -284,7 +298,7 @@ export function DepenseForm() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {SOURCES_FONDS.map((s) => (
+              {sourcesProposables.map((s) => (
                 <SelectItem key={s} value={s}>
                   {SOURCE_LABELS[s]}
                 </SelectItem>
