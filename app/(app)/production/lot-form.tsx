@@ -14,11 +14,11 @@ import {
 } from "@/components/ui/select";
 import {
   gammeAvecIngredients,
-  INGREDIENTS_NATURELS,
-  INGREDIENTS_SECS,
+  INGREDIENTS_OBLIGATOIRES,
+  INGREDIENTS_OPTIONNELS,
   INGREDIENT_LABELS,
   type Ingredient,
-  type IngredientNaturel,
+  type IngredientOptionnel,
 } from "@/lib/domain/ingredients";
 import { createLot, type ActionState } from "./actions";
 
@@ -55,9 +55,11 @@ export function LotForm({ produits }: { produits: Produit[] }) {
     ? gammeAvecIngredients(produitSelectionne.gamme)
     : false;
 
-  // Initialisation : 3 lignes secs preremplies des qu'on est sur un Bissapa
+  // Initialisation : les obligatoires (fleur + sucre) preremplis. L'arome
+  // et les ingredients frais (ananas, gingembre, menthe) s'ajoutent selon
+  // le parfum produit.
   const [ingredients, setIngredients] = useState<IngredientLigne[]>(() =>
-    INGREDIENTS_SECS.map((nom) => ({ nom, date_peremption: "" })),
+    INGREDIENTS_OBLIGATOIRES.map((nom) => ({ nom, date_peremption: "" })),
   );
 
   const updateLigne = (index: number, patch: Partial<IngredientLigne>) => {
@@ -66,7 +68,7 @@ export function LotForm({ produits }: { produits: Produit[] }) {
     );
   };
 
-  const ajouterIngredientNaturel = (nom: IngredientNaturel) => {
+  const ajouterIngredient = (nom: IngredientOptionnel) => {
     setIngredients((prev) => [...prev, { nom, date_peremption: "" }]);
   };
 
@@ -74,8 +76,8 @@ export function LotForm({ produits }: { produits: Produit[] }) {
     setIngredients((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Naturels deja ajoutes -> retires de la liste de selection
-  const naturelsDisponibles = INGREDIENTS_NATURELS.filter(
+  // Optionnels deja ajoutes -> retires de la liste de selection
+  const optionnelsDisponibles = INGREDIENTS_OPTIONNELS.filter(
     (n) => !ingredients.some((i) => i.nom === n),
   );
 
@@ -218,9 +220,9 @@ export function LotForm({ produits }: { produits: Produit[] }) {
 
           <div className="space-y-2">
             {ingredients.map((l, i) => {
-              const sec = (INGREDIENTS_SECS as readonly string[]).includes(
-                l.nom,
-              );
+              const obligatoire = (
+                INGREDIENTS_OBLIGATOIRES as readonly string[]
+              ).includes(l.nom);
               return (
                 <div
                   key={`${l.nom}-${i}`}
@@ -230,7 +232,7 @@ export function LotForm({ produits }: { produits: Produit[] }) {
                     <Label className="text-xs">Ingrédient</Label>
                     <div className="mt-1 rounded-md border bg-background px-3 py-2 text-sm">
                       {INGREDIENT_LABELS[l.nom]}
-                      {sec ? (
+                      {obligatoire ? (
                         <span className="ml-2 text-xs text-muted-foreground">
                           (obligatoire)
                         </span>
@@ -257,8 +259,8 @@ export function LotForm({ produits }: { produits: Produit[] }) {
                     />
                   </div>
                   <div>
-                    {/* Les secs ne sont pas supprimables, les naturels oui */}
-                    {sec ? (
+                    {/* Les obligatoires ne sont pas supprimables */}
+                    {obligatoire ? (
                       <div className="size-9" />
                     ) : (
                       <Button
@@ -278,18 +280,18 @@ export function LotForm({ produits }: { produits: Produit[] }) {
             })}
           </div>
 
-          {naturelsDisponibles.length > 0 ? (
+          {optionnelsDisponibles.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-2 border-t pt-3">
               <span className="self-center text-xs text-muted-foreground">
-                Ajouter un ingrédient naturel :
+                Ajouter selon le parfum :
               </span>
-              {naturelsDisponibles.map((n) => (
+              {optionnelsDisponibles.map((n) => (
                 <Button
                   key={n}
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => ajouterIngredientNaturel(n)}
+                  onClick={() => ajouterIngredient(n)}
                   disabled={pending}
                 >
                   <Plus className="size-3" />

@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth/guards";
 import {
   gammeAvecIngredients,
-  INGREDIENTS_SECS,
+  INGREDIENTS_OBLIGATOIRES,
+  INGREDIENT_LABELS,
 } from "@/lib/domain/ingredients";
 import { lotSchema } from "./schemas";
 
@@ -63,12 +64,14 @@ export async function createLot(
 
   if (produit && gammeAvecIngredients(produit.gamme)) {
     const nomsRecus = new Set(ingredients.map((i) => i.nom));
-    const secsManquants = INGREDIENTS_SECS.filter((s) => !nomsRecus.has(s));
-    if (secsManquants.length > 0) {
+    const manquants = INGREDIENTS_OBLIGATOIRES.filter(
+      (s) => !nomsRecus.has(s),
+    );
+    if (manquants.length > 0) {
       return {
         error:
-          "Ingrédients secs obligatoires manquants pour un Bissapa : " +
-          secsManquants.join(", ") +
+          "Ingrédients obligatoires manquants pour un Bissapa : " +
+          manquants.map((m) => INGREDIENT_LABELS[m]).join(", ") +
           ".",
       };
     }
