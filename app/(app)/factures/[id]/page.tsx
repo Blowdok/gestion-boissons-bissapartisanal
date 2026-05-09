@@ -46,7 +46,7 @@ export default async function FactureDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { profile, user, supabase } = await requireRole("patron", "livreur");
+  const { profile, user, supabase } = await requireRole("patron", "adjoint", "livreur");
 
   const { data: facture } = await supabase
     .from("factures_avec_solde")
