@@ -137,6 +137,13 @@ export async function changerStatutLivraison(
   id: string,
   statut: "programmee" | "en_cours" | "livree" | "annulee",
 ) {
+  // L'annulation passe TOUJOURS par la RPC annuler_livraison qui restaure
+  // le stock (supprime les mouvements). On ne veut pas que le simple
+  // UPDATE statut='annulee' laisse le stock decremente.
+  if (statut === "annulee") {
+    return annulerLivraison(id);
+  }
+
   const { supabase } = await requireRole("patron", "adjoint", "fabrication", "livreur");
 
   // Le Livreur ne peut updater que ses livraisons (RLS le verifie deja).
@@ -145,7 +152,7 @@ export async function changerStatutLivraison(
   if (statut === "livree") {
     update.date_livraison = new Date().toISOString();
   }
-  if (statut === "programmee" || statut === "annulee") {
+  if (statut === "programmee") {
     update.date_livraison = null;
   }
 
@@ -169,34 +176,47 @@ export async function changerStatutLivraison(
 }
 
 export async function annulerLivraison(id: string) {
-  // Annulation = soft (statut='annulee') pour conserver l'historique.
-  // Les mouvements de stock 'livraison' deja crees restent en BDD.
-  // Si on veut compenser, le Patron peut creer un mouvement 'ajustement' manuel.
-  return changerStatutLivraison(id, "annulee");
+  // Annulation d'une livraison BROUILLON (programmee/en_cours) :
+  // RPC annuler_livraison qui supprime les mouvements_stock pour
+  // restaurer le stock dispo (la marchandise n'a jamais quitte l'entrepot).
+  // Pour une livraison deja livree+facturee, utiliser annuler_facture.
+  const { supabase } = await requireRole("patron");
+  const { error } = await supabase.rpc("annuler_livraison", {
+    p_livraison_id: id,
+  });
+  if (error) {
+    if (error.code === "42501") {
+      throw new Error("Action reservee au Patron.");
+    }
+    throw new Error(error.message);
+  }
+  revalidatePath("/livraisons");
+  revalidatePath(`/livraisons/${id}`);
+  revalidatePath("/livraisons/tournee");
+  revalidatePath("/stock");
+  revalidatePath("/production");
+  revalidatePath("/dashboard");
 }
 
 export async function supprimerLivraison(
   id: string,
 ): Promise<SupprimerLivraisonResult> {
-  // Suppression DEFINITIVE (Patron uniquement, RLS).
-  // L'Adjoint ne peut PAS supprimer une livraison (operation rare et sensible).
-  // Possible seulement si pas de facture (ON DELETE RESTRICT bloque sinon).
-  // Pattern objet retour (pas de redirect) : evite l'erreur NEXT_REDIRECT
-  // attrapee par le try/catch du composant client. Le client fait son
-  // router.push apres succes.
+  // Suppression DEFINITIVE d'une livraison BROUILLON (Patron uniquement).
+  // Passe par la RPC supprimer_livraison_brouillon qui :
+  //  1. verifie qu'aucune facture n'est rattachee
+  //  2. supprime les mouvements_stock pour restaurer le stock dispo
+  //  3. supprime la livraison (cascade les lignes)
+  // Tout en transaction SQL : si une etape echoue, rien n'est applique.
   const { supabase } = await requireRole("patron");
-  const { error } = await supabase.from("livraisons").delete().eq("id", id);
+  const { error } = await supabase.rpc("supprimer_livraison_brouillon", {
+    p_livraison_id: id,
+  });
   if (error) {
-    if (error.code === "23503") {
-      return {
-        ok: false,
-        error:
-          "Impossible : une facture est rattachee. Annule plutot la livraison pour conserver la trace.",
-      };
-    }
     return { ok: false, error: error.message };
   }
   revalidatePath("/livraisons");
   revalidatePath("/stock");
+  revalidatePath("/production");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
