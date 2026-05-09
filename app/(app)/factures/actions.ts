@@ -164,6 +164,34 @@ export async function envoyerFactureParEmail(
   return { status: "error", message: result.detail ?? "Échec d'envoi" };
 }
 
+// =============================================================================
+// Annulation d'une facture (jamais une suppression : interdit par le CGI)
+// Appelle la RPC SQL annuler_facture qui :
+//   - met le flag annulee_le sur la facture
+//   - supprime les paiements lies (cesse de compter dans le CA)
+//   - bascule la livraison liee en statut 'annulee'
+// La facture reste consultable pour la tracabilite legale.
+// =============================================================================
+export async function annulerFacture(
+  factureId: string,
+  motif: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { supabase } = await requireRole("patron");
+
+  const { error } = await supabase.rpc("annuler_facture", {
+    p_facture_id: factureId,
+    p_motif: motif.trim() || null,
+  });
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/factures/${factureId}`);
+  revalidatePath("/factures");
+  revalidatePath("/livraisons");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
 export async function supprimerPaiement(id: string) {
   const { supabase } = await requireRole("patron", "adjoint", "livreur");
 

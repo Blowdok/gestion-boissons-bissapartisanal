@@ -30,6 +30,7 @@ import {
 import { PaiementForm } from "./paiement-form";
 import { DeletePaiementButton } from "./delete-paiement";
 import { EnvoiEmailButton } from "./envoi-email-button";
+import { FactureAnnuler } from "./facture-annuler";
 
 export const metadata = { title: "Facture" };
 
@@ -44,12 +45,15 @@ export default async function FactureDetailPage({
   const { data: facture } = await supabase
     .from("factures_avec_solde")
     .select(
-      "id, numero, date_emission, montant_ht, montant_encaisse, montant_a_encaisser, solde, statut_paiement, anciennete_jours, livraison_id, client_id",
+      "id, numero, date_emission, montant_ht, montant_encaisse, montant_a_encaisser, solde, statut_paiement, anciennete_jours, livraison_id, client_id, est_annulee, annulee_le, motif_annulation",
     )
     .eq("id", id)
     .maybeSingle();
 
   if (!facture) notFound();
+
+  const estAnnulee = Boolean(facture.est_annulee);
+  const peutAnnuler = profile.role === "patron" && !estAnnulee;
 
   const [{ data: client }, { data: livraison }, { data: paiements }] = await Promise.all([
     supabase
@@ -103,11 +107,17 @@ export default async function FactureDetailPage({
         description={
           <>
             Émise le {formatDate(facture.date_emission)} ·{" "}
-            <Badge
-              className={`ml-1 ${STATUT_PAIEMENT_BADGE_CLASS[facture.statut_paiement as StatutPaiement]}`}
-            >
-              {STATUT_PAIEMENT_LABEL[facture.statut_paiement as StatutPaiement]}
-            </Badge>
+            {estAnnulee ? (
+              <Badge className="ml-1 bg-destructive text-destructive-foreground hover:bg-destructive">
+                ANNULÉE
+              </Badge>
+            ) : (
+              <Badge
+                className={`ml-1 ${STATUT_PAIEMENT_BADGE_CLASS[facture.statut_paiement as StatutPaiement]}`}
+              >
+                {STATUT_PAIEMENT_LABEL[facture.statut_paiement as StatutPaiement]}
+              </Badge>
+            )}
           </>
         }
         actions={
@@ -121,10 +131,12 @@ export default async function FactureDetailPage({
               <Download className="size-4" />
               Télécharger PDF
             </a>
-            <EnvoiEmailButton
-              factureId={facture.id}
-              clientEmail={client?.email ?? null}
-            />
+            {!estAnnulee ? (
+              <EnvoiEmailButton
+                factureId={facture.id}
+                clientEmail={client?.email ?? null}
+              />
+            ) : null}
             <Link
               href={`/livraisons/${facture.livraison_id}`}
               className={buttonVariants({ variant: "outline" })}
@@ -132,9 +144,41 @@ export default async function FactureDetailPage({
               <ExternalLink className="size-4" />
               Livraison liée
             </Link>
+            {peutAnnuler ? (
+              <FactureAnnuler
+                factureId={facture.id}
+                numero={facture.numero}
+                aPaiements={
+                  Number(facture.montant_encaisse) > 0 ||
+                  Number(facture.montant_a_encaisser) > 0
+                }
+              />
+            ) : null}
           </>
         }
       />
+
+      {estAnnulee ? (
+        <div className="mb-6 rounded-md border border-destructive/30 bg-destructive/5 p-4">
+          <p className="text-sm font-medium text-destructive">
+            Facture annulée
+            {facture.annulee_le ? (
+              <> le {formatDateTime(facture.annulee_le)}</>
+            ) : null}
+            .
+          </p>
+          {facture.motif_annulation ? (
+            <p className="mt-1 text-sm text-muted-foreground">
+              Motif : {facture.motif_annulation}
+            </p>
+          ) : null}
+          <p className="mt-2 text-xs text-muted-foreground">
+            La facture reste consultable pour la traçabilité légale mais ne
+            compte plus dans le CA ni les statistiques. Les paiements
+            associés ont été supprimés.
+          </p>
+        </div>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
@@ -255,7 +299,7 @@ export default async function FactureDetailPage({
         </div>
       </div>
 
-      {Number(facture.solde) > 0 ? (
+      {Number(facture.solde) > 0 && !estAnnulee ? (
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>Enregistrer un paiement</CardTitle>

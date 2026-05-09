@@ -293,6 +293,59 @@ prêt à envoyer à ton comptable, contenant :
 Format : `;` séparateur (Excel France), accents UTF-8 BOM (pas de
 caractères cassés à l'ouverture).
 
+## 🗑️ Supprimer ou annuler une donnée
+
+Le règlement français interdit la suppression d'une **facture émise**
+(art. 286 du CGI, conservation 10 ans). L'application propose donc deux
+mécanismes distincts selon ce que tu veux faire :
+
+### A. Supprimer (irréversible, utilisé pour corriger une erreur de saisie)
+
+Disponible uniquement quand la donnée n'a pas encore généré d'effet
+légal ou comptable :
+
+| Donnée | Quand le bouton apparaît |
+|---|---|
+| **Dépense** | Toujours (Patron) — bouton corbeille sur la liste |
+| **Client** | S'il n'a aucune livraison enregistrée — bouton sur la fiche client |
+| **Produit** | S'il n'est référencé dans aucun lot ni livraison — menu trois-points |
+| **Lot de production** | S'il n'a jamais été consommé (livré ou perdu) — bouton sur la fiche lot |
+| **Livraison** | Statut programmée / en cours / annulée et **sans facture** — bouton sur la fiche livraison |
+
+Si la condition n'est pas remplie, le bouton n'apparaît pas (ou est
+désactivé avec une infobulle explicative). Pour les clients/produits avec
+historique, utilise plutôt **Désactiver** (les données restent en base
+mais sortent des listes par défaut).
+
+### B. Annuler (conserve la trace, utilisé pour les factures déjà émises)
+
+| Donnée | Effet |
+|---|---|
+| **Livraison** programmée/en cours | Statut passe à `Annulée`, le stock déjà déduit reste tel quel (à compenser via un ajustement si besoin) |
+| **Facture** émise | Bouton **Annuler la facture** (Patron) sur la fiche facture. La facture est marquée ANNULÉE (filigrane rouge sur le PDF), exclue du CA et du dashboard, ses paiements sont supprimés (équivalent à un avoir global), la livraison liée passe en `Annulée`. **La facture reste consultable** pour la traçabilité légale |
+
+Une facture annulée n'est plus modifiable et son numéro reste réservé
+(la séquence ne se réajuste pas, ce qui est l'usage légal en France).
+
+### C. Tout réinitialiser (transition tests → production)
+
+Page **Admin → Réinitialiser les données opérationnelles** (Patron uniquement,
+double confirmation par saisie du mot-clé `RESET`).
+
+Cette action vide en une fois :
+- Toutes les **livraisons**, **factures**, **paiements**
+- Tous les **lots** et **mouvements de stock**
+- Toutes les **dépenses**
+- Réinitialise la numérotation à `FAC-AAAA-00001`
+
+Sont **conservés** : utilisateurs, clients, produits, tarifs négociés,
+configuration entreprise.
+
+> ⚠️ **À utiliser une seule fois**, pour basculer de la phase de tests
+> à la mise en service réelle. Une fois en production, ne pas y
+> toucher : tu perdrais l'historique légal. Pour corriger une erreur,
+> utilise les actions ciblées ci-dessus.
+
 ## État du projet
 
 - ✅ **Phase 0** — Cadrage & bootstrap : scaffolding Next.js 16, shadcn/ui,

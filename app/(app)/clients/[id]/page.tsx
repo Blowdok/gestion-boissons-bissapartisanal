@@ -14,6 +14,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { formatEUR } from "@/lib/utils/format";
 import { TarifsEditor } from "./tarifs-editor";
 import { ClientStatutToggle } from "./statut-toggle";
+import { ClientSupprimer } from "./client-supprimer";
 
 export const metadata = { title: "Fiche client" };
 
@@ -59,6 +60,14 @@ export default async function ClientDetailPage({
     .select("produit_id, prix_ht")
     .eq("client_id", id);
 
+  // Compte des livraisons : conditionne l'affichage du bouton Supprimer
+  const { count: nbLivraisons } = await supabase
+    .from("livraisons")
+    .select("id", { count: "exact", head: true })
+    .eq("client_id", id);
+  const aDesLivraisons = (nbLivraisons ?? 0) > 0;
+  const peutSupprimer = profile.role === "patron";
+
   const tarifsMap = new Map(tarifs?.map((t) => [t.produit_id, Number(t.prix_ht)]) ?? []);
 
   return (
@@ -85,6 +94,13 @@ export default async function ClientDetailPage({
         }
         actions={
           <>
+            {peutSupprimer ? (
+              <ClientSupprimer
+                id={client.id}
+                raisonSociale={client.raison_sociale}
+                aDesLivraisons={aDesLivraisons}
+              />
+            ) : null}
             {canManageTarifsEtStatut ? (
               <ClientStatutToggle
                 id={client.id}
