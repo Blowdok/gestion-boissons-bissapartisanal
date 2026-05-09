@@ -25,6 +25,7 @@ import {
   INGREDIENT_LABELS,
   type Ingredient,
 } from "@/lib/domain/ingredients";
+import { LotSupprimer } from "./lot-supprimer";
 
 export const metadata = { title: "Lot · Stock" };
 
@@ -57,6 +58,7 @@ export default async function LotDetailPage({
   const { id } = await params;
   const { profile, supabase } = await requireRole("patron", "fabrication", "livreur");
   const canSaisirPerte = profile.role === "patron" || profile.role === "fabrication";
+  const canSupprimerLot = profile.role === "patron";
 
   const { data: lot } = await supabase
     .from("lots")
@@ -110,15 +112,27 @@ export default async function LotDetailPage({
           </>
         }
         actions={
-          canSaisirPerte ? (
-            <Link
-              href={`/stock/pertes/nouveau?lot=${lot.id}`}
-              className={buttonVariants({ variant: "outline" })}
-            >
-              <AlertTriangle className="size-4" />
-              Saisir une perte
-            </Link>
-          ) : null
+          <>
+            {canSaisirPerte ? (
+              <Link
+                href={`/stock/pertes/nouveau?lot=${lot.id}`}
+                className={buttonVariants({ variant: "outline" })}
+              >
+                <AlertTriangle className="size-4" />
+                Saisir une perte
+              </Link>
+            ) : null}
+            {canSupprimerLot ? (
+              <LotSupprimer
+                id={lot.id}
+                nomProduit={produit?.nom ?? "lot"}
+                consomme={
+                  (stock?.qte_livree ?? 0) > 0 ||
+                  (stock?.qte_perdue ?? 0) > 0
+                }
+              />
+            ) : null}
+          </>
         }
       />
 

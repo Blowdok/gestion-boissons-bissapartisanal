@@ -42,6 +42,33 @@ export function FacturePDF({ data }: { data: PdfFactureData }) {
       producer="Le Bissap Artisanal"
     >
       <Page size="A4" style={pdfStyles.page}>
+        {/* Filigrane ANNULEE : barre rouge en haut + texte central rotation */}
+        {data.est_annulee ? (
+          <View
+            fixed
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              backgroundColor: "#dc2626",
+              paddingVertical: 6,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: "#ffffff",
+                fontSize: 14,
+                fontWeight: "bold",
+                letterSpacing: 4,
+              }}
+            >
+              FACTURE ANNULÉE
+            </Text>
+          </View>
+        ) : null}
+
         {/* Header : emetteur a gauche, document a droite */}
         <View style={pdfStyles.headerRow}>
           <View style={pdfStyles.emetteurBlock}>

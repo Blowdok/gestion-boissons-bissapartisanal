@@ -18,7 +18,7 @@ export async function GET(
   const { data: facture, error: errFact } = await supabase
     .from("factures_avec_solde")
     .select(
-      "id, numero, date_emission, montant_ht, livraison_id, client_id, montant_encaisse, montant_a_encaisser, solde, statut_paiement",
+      "id, numero, date_emission, montant_ht, livraison_id, client_id, montant_encaisse, montant_a_encaisser, solde, statut_paiement, est_annulee",
     )
     .eq("id", id)
     .maybeSingle();
@@ -71,7 +71,9 @@ export async function GET(
     statut_paiement: (facture.statut_paiement ?? "impaye") as
       | "paye"
       | "partiel"
-      | "impaye",
+      | "impaye"
+      | "annulee",
+    est_annulee: Boolean(facture.est_annulee),
   };
 
   const buffer = await renderToBuffer(<FacturePDF data={data} />);

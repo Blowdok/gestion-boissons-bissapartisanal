@@ -79,6 +79,39 @@ export async function toggleClientActif(id: string, actif: boolean) {
   revalidatePath(`/clients/${id}`);
 }
 
+// =============================================================================
+// Suppression definitive d'un client
+// Possible UNIQUEMENT si aucune livraison n'a jamais ete creee pour lui (sinon
+// la cascade casserait factures/paiements, ce qui est legalement interdit).
+// Pour les clients avec historique : utiliser la desactivation (toggleActif).
+// =============================================================================
+export async function supprimerClient(
+  id: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { supabase } = await requireRole("patron");
+
+  const { count, error: errCount } = await supabase
+    .from("livraisons")
+    .select("id", { count: "exact", head: true })
+    .eq("client_id", id);
+
+  if (errCount) return { ok: false, error: errCount.message };
+  if ((count ?? 0) > 0) {
+    return {
+      ok: false,
+      error:
+        "Ce client a des livraisons enregistrees. Suppression impossible : utilise la desactivation a la place.",
+    };
+  }
+
+  // Les tarifs negocies sont en CASCADE depuis client.id -> nettoyes auto.
+  const { error } = await supabase.from("clients").delete().eq("id", id);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/clients");
+  return { ok: true };
+}
+
 export async function upsertTarif(clientId: string, formData: FormData) {
   const { supabase } = await requireRole("patron", "adjoint");
 

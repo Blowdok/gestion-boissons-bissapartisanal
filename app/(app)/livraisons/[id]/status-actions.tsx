@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Mail, PlayCircle, XCircle } from "lucide-react";
+import { CheckCircle2, Mail, PlayCircle, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { changerStatutLivraison } from "../actions";
+import { changerStatutLivraison, supprimerLivraison } from "../actions";
 import type { StatutLivraison } from "../schemas";
 
 export function LivraisonStatusActions({
@@ -33,6 +33,7 @@ export function LivraisonStatusActions({
   const [pending, start] = useTransition();
   const [confirmLivree, setConfirmLivree] = useState(false);
   const [confirmAnnule, setConfirmAnnule] = useState(false);
+  const [confirmSuppression, setConfirmSuppression] = useState(false);
   const [askEmail, setAskEmail] = useState(false);
 
   const exec = (target: StatutLivraison, label: string) =>
@@ -124,6 +125,22 @@ export function LivraisonStatusActions({
             Annuler
           </Button>
         ) : null}
+
+        {/* Suppression definitive : Patron uniquement, brouillon uniquement.
+            Une livraison facturee passera par "Annuler la facture" sur la
+            fiche facture. */}
+        {(statut === "programmee" || statut === "en_cours" || statut === "annulee") &&
+        role === "patron" ? (
+          <Button
+            variant="outline"
+            size="default"
+            disabled={pending}
+            onClick={() => setConfirmSuppression(true)}
+          >
+            <Trash2 className="size-4 text-destructive" />
+            Supprimer
+          </Button>
+        ) : null}
       </div>
 
       {/* Confirmation marquer livree */}
@@ -187,6 +204,39 @@ export function LivraisonStatusActions({
               }}
             >
               Envoyer maintenant
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirmation suppression definitive */}
+      <AlertDialog open={confirmSuppression} onOpenChange={setConfirmSuppression}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer définitivement ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette livraison et toutes ses lignes vont être supprimées
+              définitivement. Si une facture y est rattachée, l&apos;opération
+              sera refusée — il faudra alors passer par « Annuler la facture »
+              sur la fiche facture.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmSuppression(false);
+                start(async () => {
+                  try {
+                    await supprimerLivraison(id);
+                    // redirect dans l'action -> pas besoin de router.refresh
+                  } catch (e) {
+                    toast.error(`Échec : ${(e as Error).message}`);
+                  }
+                });
+              }}
+            >
+              Supprimer définitivement
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

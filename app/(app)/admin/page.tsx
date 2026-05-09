@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Users, Package, ChevronRight } from "lucide-react";
+import { Users, Package, ChevronRight, AlertTriangle } from "lucide-react";
 import { requireRole } from "@/lib/auth/guards";
 import {
   Card,
@@ -13,7 +13,7 @@ import { PageHeader } from "@/components/layout/page-header";
 export const metadata = { title: "Admin" };
 
 export default async function AdminPage() {
-  const { supabase } = await requireRole("patron", "adjoint");
+  const { profile, supabase } = await requireRole("patron", "adjoint");
 
   const [
     { count: nbUtilisateursActifs },
@@ -50,6 +50,38 @@ export default async function AdminPage() {
           stat={`${nbProduitsActifs ?? 0} actifs / ${nbProduitsTotal ?? 0} total`}
         />
       </div>
+
+      {/* Zone sensible reservee Patron : reset des donnees operationnelles */}
+      {profile.role === "patron" ? (
+        <div className="mt-8">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Zone sensible
+          </h2>
+          <Link href="/admin/reset" className="block">
+            <Card className="border-destructive/30 transition-colors hover:bg-destructive/5">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="flex size-10 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+                      <AlertTriangle className="size-5" />
+                    </span>
+                    <div>
+                      <CardTitle className="text-lg">
+                        Réinitialiser les données opérationnelles
+                      </CardTitle>
+                      <CardDescription>
+                        Vide livraisons, factures, paiements, lots et
+                        dépenses. Conserve utilisateurs, clients et produits.
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <ChevronRight className="size-5 text-muted-foreground" />
+                </div>
+              </CardHeader>
+            </Card>
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }

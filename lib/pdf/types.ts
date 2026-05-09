@@ -34,7 +34,9 @@ export type PdfFactureData = {
   montant_encaisse: number;
   montant_a_encaisser: number;
   solde: number;
-  statut_paiement: "paye" | "partiel" | "impaye";
+  statut_paiement: "paye" | "partiel" | "impaye" | "annulee";
+  /** Si true, ajoute une mention ANNULEE en filigrane sur le PDF */
+  est_annulee?: boolean;
 };
 
 export type PdfBonLivraisonData = {
