@@ -322,6 +322,7 @@ export default async function FinancePage({ searchParams }: FinancePageProps) {
           justificatif_path: d.justificatif_path,
           statut_paiement: d.statut_paiement as StatutPaiementDepense,
         }))}
+        peutSupprimer={profile.role === "patron"}
       />
 
       {/* Légende discrète sur les badges enveloppe (utile pour le patron) */}

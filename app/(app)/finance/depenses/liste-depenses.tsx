@@ -69,7 +69,13 @@ const STATUT_VARIANT: Record<
   a_payer: "outline",
 };
 
-export function ListeDepenses({ depenses }: { depenses: Depense[] }) {
+export function ListeDepenses({
+  depenses,
+  peutSupprimer,
+}: {
+  depenses: Depense[];
+  peutSupprimer: boolean;
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -173,16 +179,18 @@ export function ListeDepenses({ depenses }: { depenses: Depense[] }) {
                         <Eye className="size-4" />
                       </Button>
                     ) : null}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      disabled={pending}
-                      onClick={() => setConfirmId(d.id)}
-                      aria-label="Supprimer"
-                    >
-                      <Trash2 className="size-4 text-destructive" />
-                    </Button>
+                    {peutSupprimer ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        disabled={pending}
+                        onClick={() => setConfirmId(d.id)}
+                        aria-label="Supprimer"
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    ) : null}
                   </div>
                 </TableCell>
               </TableRow>

@@ -66,6 +66,7 @@ type Props = {
   montantTotal: number;
   resteAPayer: number;
   paiements: PaiementRow[];
+  peutSupprimer: boolean;
 };
 
 export function PaiementsSection({
@@ -73,6 +74,7 @@ export function PaiementsSection({
   montantTotal,
   resteAPayer,
   paiements,
+  peutSupprimer,
 }: Props) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -307,16 +309,18 @@ export function PaiementsSection({
                             <Check className="size-4 text-emerald-700" />
                           </Button>
                         ) : null}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          disabled={pending}
-                          onClick={() => setConfirmId(p.id)}
-                          aria-label="Supprimer"
-                        >
-                          <Trash2 className="size-4 text-destructive" />
-                        </Button>
+                        {peutSupprimer ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            disabled={pending}
+                            onClick={() => setConfirmId(p.id)}
+                            aria-label="Supprimer"
+                          >
+                            <Trash2 className="size-4 text-destructive" />
+                          </Button>
+                        ) : null}
                       </div>
                     </TableCell>
                   </TableRow>
