@@ -46,6 +46,7 @@ export default async function LivraisonDetailPage({
   const { id } = await params;
   const { profile, supabase, user } = await requireRole(
     "patron",
+    "adjoint",
     "fabrication",
     "livreur",
   );
