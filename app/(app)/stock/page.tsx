@@ -81,7 +81,7 @@ export default async function StockPage() {
               <TableHead className="text-right">Disponible</TableHead>
               <TableHead className="text-right">Seuil</TableHead>
               <TableHead className="text-right">Lots actifs</TableHead>
-              <TableHead className="text-right">DLUO dépassée</TableHead>
+              <TableHead className="text-right">Périmé</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>

@@ -142,7 +142,7 @@ export function LotForm({ produits }: { produits: Produit[] }) {
         </div>
 
         <div>
-          <Label htmlFor="dluo">DLUO *</Label>
+          <Label htmlFor="dluo">À consommer de préférence avant le *</Label>
           <Input
             id="dluo"
             name="dluo"
@@ -154,7 +154,7 @@ export function LotForm({ produits }: { produits: Produit[] }) {
           />
           {fe.dluo ? <p className="mt-1 text-xs text-destructive">{fe.dluo}</p> : null}
           <p className="mt-1 text-xs text-muted-foreground">
-            Date Limite d&apos;Utilisation Optimale du produit fini.
+            Date de durabilité minimale (DDM) du produit fini.
           </p>
         </div>
 

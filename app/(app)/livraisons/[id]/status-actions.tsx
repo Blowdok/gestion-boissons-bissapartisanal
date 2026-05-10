@@ -151,7 +151,7 @@ export function LivraisonStatusActions({
             <AlertDialogDescription>
               Une <strong>facture sera générée automatiquement</strong> avec un
               numéro séquentiel. Le stock a déjà été décrémenté à la création
-              des lignes (FIFO sur DLUO).
+              des lignes (FIFO sur la date « à consommer avant »).
               {clientEmail ? (
                 <>
                   <br /><br />

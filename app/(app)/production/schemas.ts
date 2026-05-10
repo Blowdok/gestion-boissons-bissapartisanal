@@ -10,7 +10,7 @@ export const lotSchema = z
   .object({
     produit_id: z.string().uuid("Produit requis."),
     date_production: z.string().min(1, "Date requise."),
-    dluo: z.string().min(1, "DLUO requise."),
+    dluo: z.string().min(1, "Date « à consommer avant » requise."),
     qte_produite: z.coerce
       .number()
       .int()
@@ -23,7 +23,7 @@ export const lotSchema = z
   })
   .refine((data) => data.dluo >= data.date_production, {
     message:
-      "La DLUO doit être postérieure ou égale à la date de production.",
+      "La date « à consommer avant » doit être postérieure ou égale à la date de production.",
     path: ["dluo"],
   });
 
