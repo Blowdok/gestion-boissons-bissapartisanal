@@ -180,6 +180,10 @@ netlify.toml                     # Config déploiement Netlify
 
 ## Documentation
 
+- **Guide formation utilisateurs** : [`docs/formation-utilisateurs.md`](docs/formation-utilisateurs.md)
+  — guide pas-à-pas par rôle (Patron, Adjoint, Fabrication, Livreur),
+  conçu pour qu'Emmanuel puisse le lire seul et former lui-même son
+  équipe
 - Cahier des charges : `Cahier_des_Charges_Application_Gestion_Boissons.docx`
 - Devis : `Devis_Application_Gestion_Boissons.docx`
 - Plan d'implémentation : voir le plan validé en début de projet
