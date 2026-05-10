@@ -45,7 +45,7 @@ export default async function FactureDetailPage({
   const { data: facture } = await supabase
     .from("factures_avec_solde")
     .select(
-      "id, numero, date_emission, montant_ht, montant_encaisse, montant_a_encaisser, solde, statut_paiement, anciennete_jours, livraison_id, client_id, est_annulee, annulee_le, motif_annulation",
+      "id, numero, date_emission, montant_ht, montant_consigne, montant_du, nb_consignes_recuperees, montant_encaisse, montant_a_encaisser, solde, statut_paiement, anciennete_jours, livraison_id, client_id, est_annulee, annulee_le, motif_annulation",
     )
     .eq("id", id)
     .maybeSingle();
@@ -226,6 +226,31 @@ export default async function FactureDetailPage({
                     {formatEUR(Number(facture.montant_ht))}
                   </TableCell>
                 </TableRow>
+                {Number(facture.montant_consigne) > 0 ? (
+                  <>
+                    <TableRow>
+                      <TableCell
+                        colSpan={3}
+                        className="text-right text-sm text-muted-foreground"
+                      >
+                        Consigne récupérée ({facture.nb_consignes_recuperees ?? 0}{" "}
+                        bouteille
+                        {(facture.nb_consignes_recuperees ?? 0) > 1 ? "s" : ""})
+                      </TableCell>
+                      <TableCell className="text-right text-sm text-emerald-700 dark:text-emerald-400">
+                        −{formatEUR(Number(facture.montant_consigne))}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-right font-semibold">
+                        Net à payer
+                      </TableCell>
+                      <TableCell className="text-right text-lg font-bold">
+                        {formatEUR(Number(facture.montant_du))}
+                      </TableCell>
+                    </TableRow>
+                  </>
+                ) : null}
               </TableBody>
             </Table>
           </CardContent>
@@ -241,6 +266,24 @@ export default async function FactureDetailPage({
                 <span className="text-muted-foreground">Total HT</span>
                 <span className="font-medium">{formatEUR(Number(facture.montant_ht))}</span>
               </div>
+              {Number(facture.montant_consigne) > 0 ? (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      Consigne ({facture.nb_consignes_recuperees ?? 0})
+                    </span>
+                    <span className="font-medium text-emerald-700 dark:text-emerald-400">
+                      −{formatEUR(Number(facture.montant_consigne))}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Net à payer</span>
+                    <span className="font-semibold">
+                      {formatEUR(Number(facture.montant_du))}
+                    </span>
+                  </div>
+                </>
+              ) : null}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Encaissé</span>
                 <span className="font-medium text-emerald-700 dark:text-emerald-400">

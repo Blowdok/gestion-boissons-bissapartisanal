@@ -36,6 +36,12 @@ export type PdfFactureData = {
   client: PdfClient;
   lignes: PdfLigne[];
   montant_ht: number;
+  /** Credit consigne applique (= nb_consignes_recuperees x tarif unitaire) */
+  montant_consigne?: number;
+  /** Nombre de bouteilles / flacons rendus par le client */
+  nb_consignes_recuperees?: number;
+  /** Net a payer = montant_ht - montant_consigne. Optionnel : si absent, fallback montant_ht. */
+  montant_du?: number;
   // Etat des reglements (issu de la vue factures_avec_solde)
   montant_encaisse: number;
   montant_a_encaisser: number;

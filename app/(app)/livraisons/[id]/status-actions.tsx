@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, Mail, PlayCircle, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,11 +25,14 @@ export function LivraisonStatusActions({
   statut,
   role,
   clientEmail,
+  tarifConsigne,
 }: {
   id: string;
   statut: StatutLivraison;
   role: "patron" | "adjoint" | "fabrication" | "livreur";
   clientEmail?: string | null;
+  /** Tarif unitaire consigne (€) — utilisé pour le calcul live dans la modale. */
+  tarifConsigne: number;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -35,11 +40,14 @@ export function LivraisonStatusActions({
   const [confirmAnnule, setConfirmAnnule] = useState(false);
   const [confirmSuppression, setConfirmSuppression] = useState(false);
   const [askEmail, setAskEmail] = useState(false);
+  const [nbConsignes, setNbConsignes] = useState(0);
 
   const exec = (target: StatutLivraison, label: string) =>
     start(async () => {
       try {
-        await changerStatutLivraison(id, target);
+        const opts =
+          target === "livree" ? { nbConsignesRecuperees: nbConsignes } : undefined;
+        await changerStatutLivraison(id, target, opts);
         router.refresh();
         toast.success(label);
         // Si on vient de livrer ET le client a un email -> proposer l'envoi
@@ -144,7 +152,13 @@ export function LivraisonStatusActions({
       </div>
 
       {/* Confirmation marquer livree */}
-      <AlertDialog open={confirmLivree} onOpenChange={setConfirmLivree}>
+      <AlertDialog
+        open={confirmLivree}
+        onOpenChange={(o) => {
+          setConfirmLivree(o);
+          if (o) setNbConsignes(0);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Marquer comme livrée ?</AlertDialogTitle>
@@ -152,17 +166,57 @@ export function LivraisonStatusActions({
               Une <strong>facture sera générée automatiquement</strong> avec un
               numéro séquentiel. Le stock a déjà été décrémenté à la création
               des lignes (FIFO sur la date « à consommer avant »).
-              {clientEmail ? (
-                <>
-                  <br /><br />
-                  <span className="text-foreground">
-                    Tu pourras envoyer la facture par email à <strong>{clientEmail}</strong>{" "}
-                    juste après.
-                  </span>
-                </>
-              ) : null}
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          <div className="space-y-2">
+            <Label htmlFor="nb_consignes">
+              Bouteilles / flacons vides récupérés
+            </Label>
+            <div className="flex items-center gap-3">
+              <Input
+                id="nb_consignes"
+                type="number"
+                min={0}
+                step={1}
+                value={nbConsignes}
+                onChange={(e) =>
+                  setNbConsignes(Math.max(0, parseInt(e.target.value) || 0))
+                }
+                className="w-28"
+              />
+              {nbConsignes > 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Crédit consigne :{" "}
+                  <strong className="text-foreground">
+                    −
+                    {(nbConsignes * tarifConsigne).toLocaleString("fr-FR", {
+                      style: "currency",
+                      currency: "EUR",
+                    })}
+                  </strong>{" "}
+                  ({nbConsignes} ×{" "}
+                  {tarifConsigne.toLocaleString("fr-FR", {
+                    style: "currency",
+                    currency: "EUR",
+                  })}
+                  )
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Laisser à 0 si aucune consigne rapportée.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {clientEmail ? (
+            <p className="text-sm text-muted-foreground">
+              Tu pourras envoyer la facture par email à{" "}
+              <strong className="text-foreground">{clientEmail}</strong> juste après.
+            </p>
+          ) : null}
+
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction

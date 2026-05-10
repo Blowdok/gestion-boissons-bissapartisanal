@@ -75,9 +75,19 @@ export default async function LivraisonDetailPage({
   // Recupere la facture eventuelle
   const { data: facture } = await supabase
     .from("factures_avec_solde")
-    .select("id, numero, montant_ht, montant_encaisse, montant_a_encaisser, solde, statut_paiement")
+    .select(
+      "id, numero, montant_ht, montant_consigne, montant_du, montant_encaisse, montant_a_encaisser, solde, statut_paiement",
+    )
     .eq("livraison_id", id)
     .maybeSingle();
+
+  // Tarif consigne courant (pour la modale "Marquer livree")
+  const { data: parametres } = await supabase
+    .from("parametres_entreprise")
+    .select("tarif_consigne_eur")
+    .eq("id", true)
+    .maybeSingle();
+  const tarifConsigne = Number(parametres?.tarif_consigne_eur ?? 0.05);
 
   const statut = livraison.statut as StatutLivraison;
   const isLivreurAssigne = livraison.livreur_id === user.id;
@@ -142,6 +152,7 @@ export default async function LivraisonDetailPage({
                 statut={statut}
                 role={profile.role}
                 clientEmail={client?.email ?? null}
+                tarifConsigne={tarifConsigne}
               />
             ) : null}
           </>
