@@ -8,6 +8,7 @@ production de boissons.
 **Zandjabila** (2 GingerShot en flacons 60ml). Extensible via le module Admin.
 
 **Fonctionnalités principales** :
+
 - Production : saisie de lots avec date « à consommer de préférence avant
   le » (DDM), **traçabilité ingrédients** (fleur de bissap, sucre, arôme +
   ingrédients naturels selon la saveur), gestion des pertes (casse,
@@ -42,6 +43,7 @@ production de boissons.
   consigne), réinitialisation des données opérationnelles (mode démo)
 
 **Quatre rôles** :
+
 - **Patron** : accès complet, finance complète (3 enveloppes), paramètres,
   gestion utilisateurs, suppressions définitives
 - **Adjoint** (« Patron par intérim ») : opérationnel complet + dashboard
@@ -89,19 +91,19 @@ L'application est disponible sur http://localhost:3000.
 
 ### Variables d'environnement requises
 
-| Variable | Description |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL du projet Supabase |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clé publique Supabase (PostgREST + Auth client) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Clé service_role (server only, **jamais** exposée au browser) |
-| `NEXT_PUBLIC_APP_URL` | URL publique de l'app (dev : `http://localhost:3000`, prod : `https://gestion-bissap-artisanal.blowdok.fr`) |
+| Variable                        | Description                                                                                                 |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | URL du projet Supabase                                                                                      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clé publique Supabase (PostgREST + Auth client)                                                             |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Clé service_role (server only, **jamais** exposée au browser)                                               |
+| `NEXT_PUBLIC_APP_URL`           | URL publique de l'app (dev : `http://localhost:3000`, prod : `https://gestion-bissap-artisanal.blowdok.fr`) |
 
 ### Variables optionnelles
 
-| Variable | Description |
-|---|---|
-| `RESEND_API_KEY` | Clé API Resend pour l'envoi des factures par email |
-| `RESEND_FROM` | Adresse expéditeur (ex: `Le Bissap Artisanal <facture@xxx>`) |
+| Variable                   | Description                                                      |
+| -------------------------- | ---------------------------------------------------------------- |
+| `RESEND_API_KEY`           | Clé API Resend pour l'envoi des factures par email               |
+| `RESEND_FROM`              | Adresse expéditeur (ex: `Le Bissap Artisanal <facture@xxx>`)     |
 | `NEXT_PUBLIC_ENTREPRISE_*` | Surcharges des infos entreprise (cf. `lib/config/entreprise.ts`) |
 | `OPENROUTER_API_KEY` | Clé API OpenRouter pour les fonctionnalités IA V2 (sans elle, les features IA sont désactivées gracieusement) |
 | `OPENROUTER_APP_NAME` | Nom affiché dans le dashboard OpenRouter (défaut : `Le Bissap Artisanal`) |
@@ -114,26 +116,26 @@ le SQL Editor du Dashboard Supabase ou via `npx supabase db push` après
 
 Deux seeds disponibles selon l'environnement :
 
-| Environnement | Fichier | Contient |
-|---|---|---|
-| **Production** (chez le Patron) | `supabase/seed-production.sql` | Uniquement les 10 produits |
-| **Développement** (local) | `supabase/seed.sql` | 10 produits + 3 clients fictifs + lots/livraisons de test |
+| Environnement                   | Fichier                        | Contient                                                  |
+| ------------------------------- | ------------------------------ | --------------------------------------------------------- |
+| **Production** (chez le Patron) | `supabase/seed-production.sql` | Uniquement les 10 produits                                |
+| **Développement** (local)       | `supabase/seed.sql`            | 10 produits + 3 clients fictifs + lots/livraisons de test |
 
 Les 3 utilisateurs de test (dev uniquement) sont créés via
 `node --env-file=.env.local scripts/seed-users.mjs`.
 
 ## Scripts disponibles
 
-| Commande | Description |
-|---|---|
-| `npm run dev` | Démarrage du serveur de développement (Turbopack) |
-| `npm run build` | Build de production |
-| `npm start` | Démarrage en mode production |
-| `npm run lint` | Vérification ESLint |
-| `npm run typecheck` | Vérification des types TypeScript |
-| `npm test` | Tests unitaires (Vitest) |
-| `npm run test:watch` | Tests unitaires en mode watch |
-| `npm run test:e2e` | Tests end-to-end (Playwright) |
+| Commande             | Description                                       |
+| -------------------- | ------------------------------------------------- |
+| `npm run dev`        | Démarrage du serveur de développement (Turbopack) |
+| `npm run build`      | Build de production                               |
+| `npm start`          | Démarrage en mode production                      |
+| `npm run lint`       | Vérification ESLint                               |
+| `npm run typecheck`  | Vérification des types TypeScript                 |
+| `npm test`           | Tests unitaires (Vitest)                          |
+| `npm run test:watch` | Tests unitaires en mode watch                     |
+| `npm run test:e2e`   | Tests end-to-end (Playwright)                     |
 
 ## Arborescence
 
@@ -201,33 +203,34 @@ netlify.toml                     # Config déploiement Netlify
 Quand tu saisis une dépense, tu choisis une **catégorie**. Voici la liste
 et ce qu'on met dedans :
 
-| Catégorie | Ce qu'elle contient |
-|---|---|
-| **Matière première** | Sucre, fleurs d'hibiscus, fruits (ananas, gingembre, citron, menthe), gaz et eau de production, bouteilles, cartons, étiquettes, affiches, machines |
-| **Salaire employé** | Salaires + charges sociales du personnel |
-| **Électricité** | Électricité du local (le gaz et l'eau de production restent en *Matière première*) |
-| **Cotisation de l'État** | URSSAF, impôts, CFE |
-| **Loyer** | Loyer du local |
-| **Logiciel facturation** | Abonnements logiciels |
-| **Téléphone** | Forfait pro, internet |
-| **Transport** | Carburant, réparation du véhicule |
-| **Assurance** | RC professionnelle, assurance véhicule, multirisque |
-| **Marketing & communication** | Pubs, salons, flyers, réseaux sociaux, communication |
-| **Autres** | Tout ce qui ne rentre dans aucune catégorie ci-dessus |
+| Catégorie                     | Ce qu'elle contient                                                                                                                                 |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Matière première**          | Sucre, fleurs d'hibiscus, fruits (ananas, gingembre, citron, menthe), gaz et eau de production, bouteilles, cartons, étiquettes, affiches, machines |
+| **Salaire employé**           | Salaires + charges sociales du personnel                                                                                                            |
+| **Électricité**               | Électricité du local (le gaz et l'eau de production restent en _Matière première_)                                                                  |
+| **Cotisation de l'État**      | URSSAF, impôts, CFE                                                                                                                                 |
+| **Loyer**                     | Loyer du local                                                                                                                                      |
+| **Logiciel facturation**      | Abonnements logiciels                                                                                                                               |
+| **Téléphone**                 | Forfait pro, internet                                                                                                                               |
+| **Transport**                 | Carburant, réparation du véhicule                                                                                                                   |
+| **Assurance**                 | RC professionnelle, assurance véhicule, multirisque                                                                                                 |
+| **Marketing & communication** | Pubs, salons, flyers, réseaux sociaux, communication                                                                                                |
+| **Autres**                    | Tout ce qui ne rentre dans aucune catégorie ci-dessus                                                                                               |
 
 ### 2. Les 3 enveloppes 50/30/20
 
 Chaque dépense est rattachée à une **enveloppe** (le « budget » dans
 lequel tu prends l'argent). Le Tableau de bord calcule pour chaque mois :
+
 - combien tu **alloues** à chaque enveloppe (en % du résultat du mois),
 - combien tu as **consommé**,
 - ton **solde** restant (vert = OK, rouge = à découvert).
 
-| Enveloppe | Pourcentage du résultat | À quoi elle sert |
-|---|---|---|
-| 🟢 **Réinvestissement** | 50 % | Tout ce qui fait tourner la production : matières premières, machines, emballages |
-| 🟠 **Charges** | 30 % | Tous les frais récurrents qui ne sont pas de la production : salaires, loyer, électricité, cotisations, transport, assurance, communication, logiciels, téléphone |
-| 🔵 **Personnel** | 20 % | Ton enveloppe à toi (Emmanuel) — tes besoins perso et familiaux. Tu peux aussi y piocher pour payer ponctuellement une charge ou un réinvestissement si tu le souhaites |
+| Enveloppe               | Pourcentage du résultat | À quoi elle sert                                                                                                                                                        |
+| ----------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🟢 **Réinvestissement** | 50 %                    | Tout ce qui fait tourner la production : matières premières, machines, emballages                                                                                       |
+| 🟠 **Charges**          | 30 %                    | Tous les frais récurrents qui ne sont pas de la production : salaires, loyer, électricité, cotisations, transport, assurance, communication, logiciels, téléphone       |
+| 🔵 **Personnel**        | 20 %                    | Ton enveloppe à toi (Emmanuel) — tes besoins perso et familiaux. Tu peux aussi y piocher pour payer ponctuellement une charge ou un réinvestissement si tu le souhaites |
 
 **Astuce** : quand tu choisis une catégorie, l'enveloppe se remplit
 automatiquement avec le bon défaut. Tu peux **toujours la changer**
@@ -239,12 +242,12 @@ bouteilles avec ton enveloppe Personnel).
 Une fois la dépense créée, son **statut** dépend des paiements que tu
 attaches dessus. Tu vois ces statuts colorés dans le tableau Finance :
 
-| Badge | Quand l'utiliser |
-|---|---|
+| Badge          | Quand l'utiliser                                                                                                                             |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | 🔴 **À payer** | La dépense existe mais tu n'as **rien programmé** : pas d'échéance, pas de règlement. C'est une **dette ouverte** sur laquelle tu dois agir. |
-| 🔵 **Prévu** | Tu as **planifié une ou plusieurs échéances** futures (date prévue) mais l'argent n'est pas encore parti. Pour anticiper le cash-flow. |
-| 🟠 **Partiel** | Tu as déjà payé **une partie** de la dépense, mais il reste un solde à régler. |
-| 🟢 **Payée** | Tout est réglé, somme des paiements = montant total. |
+| 🔵 **Prévu**   | Tu as **planifié une ou plusieurs échéances** futures (date prévue) mais l'argent n'est pas encore parti. Pour anticiper le cash-flow.       |
+| 🟠 **Partiel** | Tu as déjà payé **une partie** de la dépense, mais il reste un solde à régler.                                                               |
+| 🟢 **Payée**   | Tout est réglé, somme des paiements = montant total.                                                                                         |
 
 ### 4. Saisir des paiements multi-échéances
 
@@ -256,11 +259,11 @@ ou les chèques post-datés).
 
 > **Cas 1 — paiement comptant** (achat carburant)
 > Tu crées la dépense (Transport, 80 €), puis ajoutes 1 ligne paiement :
-> *date effective = aujourd'hui, mode = carte*. Statut → **Payée**.
+> _date effective = aujourd'hui, mode = carte_. Statut → **Payée**.
 
 > **Cas 2 — facture fournisseur en 3 fois** (sucre, 600 €)
 > Tu crées la dépense puis ajoutes 3 lignes paiement :
-> *200 € prévu le 15/05, 200 € prévu le 15/06, 200 € prévu le 15/07*
+> _200 € prévu le 15/05, 200 € prévu le 15/06, 200 € prévu le 15/07_
 > (sans date effective). Statut → **Prévu**.
 > Le jour où tu paies réellement la 1ʳᵉ échéance, tu cliques sur le
 > bouton ✓ (« Marquer payé ») dans la fiche détail. Statut → **Partiel**.
@@ -274,12 +277,14 @@ ou les chèques post-datés).
 ### 5. Lire le Tableau de bord Finance
 
 Sur la page **/finance** :
+
 - **Décaissements du mois** → ce qui a vraiment quitté ton compte ce mois
 - **Engagements du mois** (info sous le KPI) → ce que tu as commandé/engagé ce mois (peut être > décaissements si tu paies plus tard)
 - **Reste à payer** → solde total de tes dettes ouvertes (À payer + Prévu + Partiel)
 - **Échéances dans les 30 j** → les paiements planifiés à venir, avec icône ⚠ si en retard
 
 Sur la page **/dashboard** (Tableau de bord global) :
+
 - **Enveloppes 50/30/20** : 3 cartes colorées avec barre de progression
   - Si la barre est verte/blanche → l'enveloppe a encore du budget
   - Si la barre devient rouge et le solde affiche un montant **négatif** → tu as dépassé l'enveloppe ce mois
@@ -287,6 +292,7 @@ Sur la page **/dashboard** (Tableau de bord global) :
 ### 6. Filtrer la liste des dépenses
 
 Sur **/finance**, deux rangées de boutons au-dessus du tableau :
+
 - **Statut** : Tous · À payer · Partiel · Prévu · Payée
 - **Enveloppe** : Toutes · Réinvestissement · Charges · Personnel
 
@@ -301,6 +307,7 @@ complète.
 
 Le bouton **Export CSV** en haut de `/finance` télécharge un fichier
 prêt à envoyer à ton comptable, contenant :
+
 - Toutes les **factures émises** dans le mois (avec montant HT, client, SIRET)
 - Tous les **paiements clients encaissés**
 - Toutes les **dépenses engagées** (avec catégorie, enveloppe, statut)
@@ -333,6 +340,7 @@ de confirmation propose un champ **« Bouteilles / flacons vides récupérés »
 ### Effet sur la facture
 
 La facture est générée avec :
+
 - `montant_ht` : total des lignes (inchangé)
 - `montant_consigne` : crédit calculé par le trigger Postgres
 - `montant_du` = `montant_ht − montant_consigne` (le **net à payer**)
@@ -340,6 +348,7 @@ La facture est générée avec :
 Le **solde** et le **statut de paiement** sont calculés sur `montant_du`
 (pas sur `montant_ht`). Une ligne « Consigne récupérée (X bouteilles) »
 apparaît :
+
 - Sur la fiche facture
 - Sur le PDF (juste après Total TTC)
 - Dans le corps de l'email d'envoi de la facture
@@ -359,13 +368,13 @@ mécanismes distincts selon ce que tu veux faire :
 Disponible uniquement quand la donnée n'a pas encore généré d'effet
 légal ou comptable :
 
-| Donnée | Quand le bouton apparaît |
-|---|---|
-| **Dépense** | Toujours (Patron) — bouton corbeille sur la liste |
-| **Client** | S'il n'a aucune livraison enregistrée — bouton sur la fiche client |
-| **Produit** | S'il n'est référencé dans aucun lot ni livraison — menu trois-points |
-| **Lot de production** | S'il n'a jamais été consommé (livré ou perdu) — bouton sur la fiche lot |
-| **Livraison** | Statut programmée / en cours / annulée et **sans facture** — bouton sur la fiche livraison |
+| Donnée                | Quand le bouton apparaît                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------------ |
+| **Dépense**           | Toujours (Patron) — bouton corbeille sur la liste                                          |
+| **Client**            | S'il n'a aucune livraison enregistrée — bouton sur la fiche client                         |
+| **Produit**           | S'il n'est référencé dans aucun lot ni livraison — menu trois-points                       |
+| **Lot de production** | S'il n'a jamais été consommé (livré ou perdu) — bouton sur la fiche lot                    |
+| **Livraison**         | Statut programmée / en cours / annulée et **sans facture** — bouton sur la fiche livraison |
 
 Si la condition n'est pas remplie, le bouton n'apparaît pas (ou est
 désactivé avec une infobulle explicative). Pour les clients/produits avec
@@ -374,10 +383,10 @@ mais sortent des listes par défaut).
 
 ### B. Annuler (conserve la trace, utilisé pour les factures déjà émises)
 
-| Donnée | Effet |
-|---|---|
-| **Livraison** programmée/en cours | Statut passe à `Annulée`. Les mouvements de stock générés par cette livraison sont **automatiquement supprimés** (RPC `annuler_livraison`) — la marchandise n'a jamais quitté l'entrepôt, le stock disponible est restauré |
-| **Facture** émise | Bouton **Annuler la facture** (Patron) sur la fiche facture. La facture est marquée ANNULÉE (filigrane rouge sur le PDF), exclue du CA et du dashboard, ses paiements sont supprimés (équivalent à un avoir global), la livraison liée passe en `Annulée` (et son stock est restauré). **La facture reste consultable** pour la traçabilité légale |
+| Donnée                            | Effet                                                                                                                                                                                                                                                                                                                                              |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Livraison** programmée/en cours | Statut passe à `Annulée`. Les mouvements de stock générés par cette livraison sont **automatiquement supprimés** (RPC `annuler_livraison`) — la marchandise n'a jamais quitté l'entrepôt, le stock disponible est restauré                                                                                                                         |
+| **Facture** émise                 | Bouton **Annuler la facture** (Patron) sur la fiche facture. La facture est marquée ANNULÉE (filigrane rouge sur le PDF), exclue du CA et du dashboard, ses paiements sont supprimés (équivalent à un avoir global), la livraison liée passe en `Annulée` (et son stock est restauré). **La facture reste consultable** pour la traçabilité légale |
 
 Une facture annulée n'est plus modifiable et son numéro reste réservé
 (la séquence ne se réajuste pas, ce qui est l'usage légal en France).
@@ -388,6 +397,7 @@ Page **Admin → Réinitialiser les données opérationnelles** (Patron uniqueme
 double confirmation par saisie du mot-clé `RESET`).
 
 Cette action vide en une fois :
+
 - Toutes les **livraisons**, **factures**, **paiements**
 - Tous les **lots** et **mouvements de stock**
 - Toutes les **dépenses**
@@ -422,9 +432,9 @@ configuration entreprise.
   avec filigrane PDF, restauration automatique du stock à l'annulation
   d'une livraison, mode reset complet (Patron, double confirm)
 - ✅ **Phase 6** — Affinage rôle Adjoint : « Patron par intérim » avec accès
-  Dashboard (sans enveloppe Personnel) + Finance limitée (Réinvestissement
-  + Charges), promotion vers Patron bloquée, policies RLS étendues sur
-  livraisons/factures/dépenses (migrations 0026 et 0027)
+  Dashboard (sans enveloppe Personnel) et Finance limitée (enveloppes
+  Réinvestissement et Charges), promotion vers Patron bloquée, policies
+  RLS étendues sur livraisons/factures/dépenses (migrations 0026 et 0027)
 - ✅ **Phase 7** — Système de consigne : tarif configurable depuis
   Admin → Paramètres (table `parametres_entreprise` singleton), saisie au
   moment de marquer livrée, déduction automatique sur la facture (PDF +
@@ -510,11 +520,11 @@ Si `OPENROUTER_API_KEY` n'est pas configurée :
 
 ## Comptes de test (dev)
 
-| Rôle | Email | Mot de passe |
-|---|---|---|
-| Patron | `patron@bissapa.test` | `Patron2026!` |
+| Rôle       | Email                      | Mot de passe       |
+| ---------- | -------------------------- | ------------------ |
+| Patron     | `patron@bissapa.test`      | `Patron2026!`      |
 | Production | `fabrication@bissapa.test` | `Fabrication2026!` |
-| Livreur | `livreur@bissapa.test` | `Livreur2026!` |
+| Livreur    | `livreur@bissapa.test`     | `Livreur2026!`     |
 
 ---
 
@@ -531,12 +541,12 @@ Si `OPENROUTER_API_KEY` n'est pas configurée :
 
 ### Pourquoi le Patron doit avoir ses propres comptes
 
-| Raison | Détail |
-|---|---|
+| Raison                   | Détail                                                                             |
+| ------------------------ | ---------------------------------------------------------------------------------- |
 | 🛡️ Propriété des données | Toutes les factures, clients, finances appartiennent à Bissapa, pas au prestataire |
-| 💳 Facturation directe | Au-delà des plans gratuits, Bissapa paie directement (pas de re-facturation) |
-| 🔒 Conformité | Le Patron reste seul responsable du traitement RGPD de ses clients |
-| 🔑 Continuité | Si le prestataire change, l'infra reste en place sans interruption |
+| 💳 Facturation directe   | Au-delà des plans gratuits, Bissapa paie directement (pas de re-facturation)       |
+| 🔒 Conformité            | Le Patron reste seul responsable du traitement RGPD de ses clients                 |
+| 🔑 Continuité            | Si le prestataire change, l'infra reste en place sans interruption                 |
 
 ### A. Compte Supabase (base de données + auth)
 
@@ -544,10 +554,10 @@ Si `OPENROUTER_API_KEY` n'est pas configurée :
 
 > 💡 **Recommandation : créer 2 projets Supabase chez Emmanuel**
 >
-> | Projet | Usage | Seed à appliquer |
-> |---|---|---|
-> | `bissapa-staging` | Formation, recette, démo, tests futurs (V2) | `seed.sql` (avec clients fictifs) |
-> | `bissapa-prod` | Production réelle | `seed-production.sql` (catalogue seul) |
+> | Projet            | Usage                                       | Seed à appliquer                       |
+> | ----------------- | ------------------------------------------- | -------------------------------------- |
+> | `bissapa-staging` | Formation, recette, démo, tests futurs (V2) | `seed.sql` (avec clients fictifs)      |
+> | `bissapa-prod`    | Production réelle                           | `seed-production.sql` (catalogue seul) |
 >
 > Avantage : la prod démarre **vraiment vide**, aucun risque d'oublier de purger
 > les données de formation. Le projet staging restera utile pour tester les
@@ -641,10 +651,10 @@ comptes infra ([section précédente](#-comptes-infrastructure-du-patron)).
 Ouvrir Netlify → **Project configuration → Environment variables** et ajouter
 les variables liées au RIB pour qu'il apparaisse sur les factures PDF :
 
-| Variable | Valeur à demander au Patron |
-|---|---|
-| `NEXT_PUBLIC_ENTREPRISE_IBAN` | IBAN du compte pro (FR76 …) |
-| `NEXT_PUBLIC_ENTREPRISE_BIC` | Code BIC/SWIFT |
+| Variable                        | Valeur à demander au Patron              |
+| ------------------------------- | ---------------------------------------- |
+| `NEXT_PUBLIC_ENTREPRISE_IBAN`   | IBAN du compte pro (FR76 …)              |
+| `NEXT_PUBLIC_ENTREPRISE_BIC`    | Code BIC/SWIFT                           |
 | `NEXT_PUBLIC_ENTREPRISE_BANQUE` | Nom de la banque (ex: « Crédit Mutuel ») |
 
 Toutes les autres infos entreprise sont déjà dans `lib/config/entreprise.ts`
@@ -667,6 +677,7 @@ besoin, sinon laisser les défauts.
 ### 3. Créer les vrais comptes opérateurs (le cas échéant)
 
 Toujours depuis **Admin → Utilisateurs**, créer les comptes :
+
 - **Adjoint(s)** si Emmanuel veut désigner un Patron de remplacement
 - **Production** : 1 compte par fabricant
 - **Livreur / Vendeur** : 1 compte par tournée
@@ -674,6 +685,7 @@ Toujours depuis **Admin → Utilisateurs**, créer les comptes :
 ### 4. Désactiver les 3 comptes de test
 
 Depuis le compte d'Emmanuel, **Admin → Utilisateurs** :
+
 - Désactiver `patron@bissapa.test`, `fabrication@bissapa.test`,
   `livreur@bissapa.test` (toggle « Actif »)
 
@@ -710,9 +722,10 @@ produits est conservé.
 ### 6. Configurer Resend en mode prod (envoi des factures par email)
 
 Tant que le domaine n'est pas vérifié chez Resend, l'envoi reste en mode
-test → seuls les emails vers `leconstantbillal@gmail.com` partent.
+test → seuls les emails vers `blowdok974@gmail.com` partent.
 
 Dès qu'Emmanuel fournit son nom de domaine définitif (ex: `bissapa.fr`) :
+
 1. Resend Dashboard → **Domains → Add Domain** → suivre les DNS (SPF + DKIM)
 2. Une fois vérifié, mettre à jour la variable Netlify
    `RESEND_FROM=Le Bissap Artisanal <facture@bissapa.fr>`
