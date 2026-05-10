@@ -38,7 +38,7 @@ export default async function NouvellePertePage({
     return {
       id: l.lot_id,
       qte_disponible: l.qte_disponible,
-      label: `${p?.nom ?? "—"} ${p?.format ?? ""}${l.numero_lot ? ` · ${l.numero_lot}` : ""} · DLUO ${new Date(l.dluo).toLocaleDateString("fr-FR")} (${l.qte_disponible} dispo)`,
+      label: `${p?.nom ?? "—"} ${p?.format ?? ""}${l.numero_lot ? ` · ${l.numero_lot}` : ""} · à conso. avant ${new Date(l.dluo).toLocaleDateString("fr-FR")} (${l.qte_disponible} dispo)`,
     };
   });
 

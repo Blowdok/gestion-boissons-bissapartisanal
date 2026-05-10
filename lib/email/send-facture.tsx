@@ -36,7 +36,11 @@ export async function sendFactureByEmail(
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1f2937; max-width: 580px; margin: 0 auto; padding: 24px;">
       <p style="font-size: 16px;">${greeting}</p>
       <p>Vous trouverez ci-joint votre facture <strong>${data.numero}</strong>
-        d'un montant de <strong>${formatEUR(data.montant_ht)}</strong>.</p>
+        d'un montant de <strong>${formatEUR(data.montant_du ?? data.montant_ht)}</strong>${
+          (data.montant_consigne ?? 0) > 0
+            ? ` (incluant un crédit consigne de ${formatEUR(data.montant_consigne!)})`
+            : ""
+        }.</p>
       <p>${data.client.conditions_paiement ?? ENTREPRISE.conditions_paiement_defaut}</p>
       <p>Merci pour votre confiance.</p>
       <p style="margin-top: 24px;">Cordialement,<br/><strong>${ENTREPRISE.gerant}</strong><br/>
@@ -50,7 +54,11 @@ export async function sendFactureByEmail(
   `;
   const text = `${greeting}
 
-Vous trouverez ci-joint votre facture ${data.numero} d'un montant de ${formatEUR(data.montant_ht)}.
+Vous trouverez ci-joint votre facture ${data.numero} d'un montant de ${formatEUR(data.montant_du ?? data.montant_ht)}${
+    (data.montant_consigne ?? 0) > 0
+      ? ` (incluant un crédit consigne de ${formatEUR(data.montant_consigne!)})`
+      : ""
+  }.
 
 ${data.client.conditions_paiement ?? ENTREPRISE.conditions_paiement_defaut}
 

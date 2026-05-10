@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Users, Package, ChevronRight, AlertTriangle } from "lucide-react";
+import { Users, Package, ChevronRight, AlertTriangle, Settings } from "lucide-react";
 import { requireRole } from "@/lib/auth/guards";
 import {
   Card,
@@ -48,6 +48,13 @@ export default async function AdminPage() {
           description="Bissapa, Zandjabila — prix, formats et seuils d'alerte."
           icon={<Package className="size-5" />}
           stat={`${nbProduitsActifs ?? 0} actifs / ${nbProduitsTotal ?? 0} total`}
+        />
+        <AdminCard
+          href="/admin/parametres"
+          title="Paramètres"
+          description="Tarif consigne et autres réglages globaux."
+          icon={<Settings className="size-5" />}
+          stat="Tarif consigne, etc."
         />
       </div>
 

@@ -8,6 +8,9 @@ import { formatEUR, formatDatePdf as formatDate } from "./format";
 
 export function FacturePDF({ data }: { data: PdfFactureData }) {
   const total = data.montant_ht;
+  const consigneCredit = data.montant_consigne ?? 0;
+  const nbConsignes = data.nb_consignes_recuperees ?? 0;
+  const totalDu = data.montant_du ?? data.montant_ht - consigneCredit;
   const aDesPaiements =
     data.montant_encaisse > 0 || data.montant_a_encaisser > 0;
   const labelFinal =
@@ -180,6 +183,23 @@ export function FacturePDF({ data }: { data: PdfFactureData }) {
             <Text style={pdfStyles.totalLabel}>Total TTC</Text>
             <Text style={pdfStyles.totalValue}>{formatEUR(total)}</Text>
           </View>
+          {consigneCredit > 0 ? (
+            <View style={pdfStyles.totalRow}>
+              <Text style={pdfStyles.totalLabel}>
+                Consigne récupérée ({nbConsignes} bouteille
+                {nbConsignes > 1 ? "s" : ""})
+              </Text>
+              <Text style={pdfStyles.totalValue}>
+                − {formatEUR(consigneCredit)}
+              </Text>
+            </View>
+          ) : null}
+          {consigneCredit > 0 ? (
+            <View style={pdfStyles.totalRow}>
+              <Text style={pdfStyles.totalLabel}>Net à payer</Text>
+              <Text style={pdfStyles.totalValue}>{formatEUR(totalDu)}</Text>
+            </View>
+          ) : null}
           {data.montant_encaisse > 0 ? (
             <View style={pdfStyles.totalRow}>
               <Text style={pdfStyles.totalLabel}>Déjà encaissé</Text>

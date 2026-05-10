@@ -41,17 +41,18 @@ export async function enregistrerPaiement(
   }
 
   // Verifie que la somme saisie ne depasse pas le reste a couvrir
-  // (montant_ht - encaisse_actuel - a_encaisser_actuel)
+  // (montant_du - encaisse_actuel - a_encaisser_actuel)
+  // montant_du = montant_ht - montant_consigne (credit consigne deja deduit)
   const { data: facture } = await supabase
     .from("factures_avec_solde")
-    .select("montant_ht, montant_encaisse, montant_a_encaisser")
+    .select("montant_du, montant_encaisse, montant_a_encaisser")
     .eq("id", parsed.data.facture_id)
     .maybeSingle();
 
   if (!facture) return { error: "Facture introuvable." };
 
   const reste =
-    Number(facture.montant_ht) -
+    Number(facture.montant_du) -
     Number(facture.montant_encaisse) -
     Number(facture.montant_a_encaisser);
   const totalSaisi = lignes.reduce((acc, l) => acc + l.montant, 0);
@@ -101,7 +102,7 @@ export async function envoyerFactureParEmail(
   const { data: facture, error: errFact } = await supabase
     .from("factures_avec_solde")
     .select(
-      "id, numero, date_emission, montant_ht, livraison_id, client_id, montant_encaisse, montant_a_encaisser, solde, statut_paiement",
+      "id, numero, date_emission, montant_ht, montant_consigne, montant_du, nb_consignes_recuperees, livraison_id, client_id, montant_encaisse, montant_a_encaisser, solde, statut_paiement",
     )
     .eq("id", factureId)
     .maybeSingle();
@@ -154,6 +155,9 @@ export async function envoyerFactureParEmail(
     client,
     lignes,
     montant_ht: Number(facture.montant_ht),
+    montant_consigne: Number(facture.montant_consigne ?? 0),
+    nb_consignes_recuperees: Number(facture.nb_consignes_recuperees ?? 0),
+    montant_du: Number(facture.montant_du ?? facture.montant_ht),
     montant_encaisse: Number(facture.montant_encaisse ?? 0),
     montant_a_encaisser: Number(facture.montant_a_encaisser ?? 0),
     solde: Number(facture.solde ?? 0),

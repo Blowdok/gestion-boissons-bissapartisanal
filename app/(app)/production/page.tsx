@@ -176,7 +176,7 @@ export default async function ProductionPage() {
                       {g.aDluoDepassee ? (
                         <Badge variant="destructive" className="gap-1">
                           <AlertTriangle className="size-3" />
-                          DLUO
+                          Périmé
                         </Badge>
                       ) : null}
                     </div>
@@ -207,7 +207,7 @@ export default async function ProductionPage() {
                   />
                   <div className="hidden md:block min-w-[110px] text-right">
                     <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                      Prochaine DLUO
+                      Prochaine échéance
                     </p>
                     <p className="text-xs font-medium">
                       {g.prochaineDluo ? formatDate(g.prochaineDluo) : "—"}
@@ -226,7 +226,7 @@ export default async function ProductionPage() {
                       <TableHead className="text-right">Livrée</TableHead>
                       <TableHead className="text-right">Perdue</TableHead>
                       <TableHead className="text-right">Disponible</TableHead>
-                      <TableHead>DLUO</TableHead>
+                      <TableHead>À consommer avant</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

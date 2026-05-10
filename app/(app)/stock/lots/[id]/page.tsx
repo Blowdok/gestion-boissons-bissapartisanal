@@ -159,7 +159,7 @@ export default async function LotDetailPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>DLUO</CardTitle>
+            <CardTitle>À consommer avant</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-semibold tracking-tight">

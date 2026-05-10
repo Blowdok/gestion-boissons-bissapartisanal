@@ -136,6 +136,7 @@ export async function claimLivraison(id: string) {
 export async function changerStatutLivraison(
   id: string,
   statut: "programmee" | "en_cours" | "livree" | "annulee",
+  options?: { nbConsignesRecuperees?: number },
 ) {
   // L'annulation passe TOUJOURS par la RPC annuler_livraison qui restaure
   // le stock (supprime les mouvements). On ne veut pas que le simple
@@ -148,9 +149,17 @@ export async function changerStatutLivraison(
 
   // Le Livreur ne peut updater que ses livraisons (RLS le verifie deja).
   // On laisse Postgres trancher.
-  const update: { statut: typeof statut; date_livraison?: string | null } = { statut };
+  const update: {
+    statut: typeof statut;
+    date_livraison?: string | null;
+    nb_consignes_recuperees?: number;
+  } = { statut };
   if (statut === "livree") {
     update.date_livraison = new Date().toISOString();
+    // Le nb consignes est saisi dans la modale "Marquer livree". Le trigger
+    // creer_facture_si_livree calcule automatiquement le credit consigne.
+    const nb = Math.max(0, Math.floor(options?.nbConsignesRecuperees ?? 0));
+    update.nb_consignes_recuperees = nb;
   }
   if (statut === "programmee") {
     update.date_livraison = null;
