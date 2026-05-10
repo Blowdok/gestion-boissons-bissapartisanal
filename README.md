@@ -15,8 +15,10 @@ production de boissons.
 - Stock : vue temps réel par produit (produite / livrée / perdue / disponible),
   alertes sous seuil, FIFO automatique sur la date à consommer avant
 - Clients B2B : annuaire, tarifs personnalisés par produit
-- Livraisons : création, tournée du jour assignée au livreur, statuts,
-  édition des métadonnées tant que la livraison est prévue
+- Livraisons : création, **heure prévue optionnelle** (créneau précis type
+  « 14h chez Carrefour »), tournée du jour triée par heure assignée au
+  livreur, statuts, édition des métadonnées tant que la livraison est
+  prévue
 - Facturation : génération automatique à la livraison, numérotation séquentielle
   `FAC-YYYY-NNNNN`, mentions légales art. 293 B CGI, état de règlement
   affiché dans le PDF (acquittée / partiel / reste à payer)
@@ -422,6 +424,13 @@ configuration entreprise.
   moment de marquer livrée, déduction automatique sur la facture (PDF +
   fiche + email), `montant_du = montant_ht − montant_consigne` dans la
   vue `factures_avec_solde`
+- ✅ **Phase 7bis** — Heure prévue de livraison optionnelle (colonne
+  `livraisons.heure_prevue time` nullable) : champ dans le formulaire de
+  création/édition, affichage sur la fiche, badge bleu HH:MM sur les
+  cartes de tournée, tri par heure ascendant (sans-créneau en fin), heure
+  ajoutée sur le PDF Bon de livraison. **Pas sur la facture** : la DDM
+  reste sur l'étiquette des bouteilles, le numéro de lot suffit pour la
+  traçabilité B2B
 - ✅ **Bonus** — Dark mode, badges colorés, sidebar sticky avec scroll
   interne, suffixe `(adj)` sur les Adjoints, logo Bissapa intégré aux
   PDFs, favicon hibiscus, branding « Le Bissap Artisanal · Gestion
