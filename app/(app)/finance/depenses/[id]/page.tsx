@@ -242,6 +242,7 @@ export default async function DepenseDetailPage({ params }: Props) {
           mode: p.mode as ModePaiementDepense,
           note: p.note,
         }))}
+        peutSupprimer={profile.role === "patron"}
       />
     </div>
   );
