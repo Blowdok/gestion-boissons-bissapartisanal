@@ -8,17 +8,21 @@ production de boissons.
 **Zandjabila** (2 GingerShot en flacons 60ml). Extensible via le module Admin.
 
 **Fonctionnalités principales** :
-- Production : saisie de lots avec DLUO, **traçabilité ingrédients** (fleur
-  de bissap, sucre, arôme + ingrédients naturels selon la saveur), gestion
-  des pertes (casse, péremption)
+- Production : saisie de lots avec date « à consommer de préférence avant
+  le » (DDM), **traçabilité ingrédients** (fleur de bissap, sucre, arôme +
+  ingrédients naturels selon la saveur), gestion des pertes (casse,
+  péremption)
 - Stock : vue temps réel par produit (produite / livrée / perdue / disponible),
-  alertes sous seuil, FIFO automatique sur DLUO
+  alertes sous seuil, FIFO automatique sur la date à consommer avant
 - Clients B2B : annuaire, tarifs personnalisés par produit
 - Livraisons : création, tournée du jour assignée au livreur, statuts,
   édition des métadonnées tant que la livraison est prévue
 - Facturation : génération automatique à la livraison, numérotation séquentielle
   `FAC-YYYY-NNNNN`, mentions légales art. 293 B CGI, état de règlement
   affiché dans le PDF (acquittée / partiel / reste à payer)
+- **Système de consigne** : crédit configurable par bouteille / flacon
+  rendu vide (0,05 € par défaut), saisi au moment de marquer la livraison
+  livrée et automatiquement déduit du montant à payer sur la facture
 - PDF : Bon de livraison + Facture avec logo Bissapa intégré (templates
   react-pdf)
 - Email transactionnel : envoi automatique de la facture au client (Resend)
@@ -32,11 +36,16 @@ production de boissons.
   alloué × consommé × solde, graphique 12 mois, top 5 clients & produits
 - Export comptable CSV mensuel : factures, encaissements, dépenses
   engagées et décaissements effectifs (cash flow réel)
+- Admin : utilisateurs, catalogue produits, **paramètres globaux** (tarif
+  consigne), réinitialisation des données opérationnelles (mode démo)
 
 **Quatre rôles** :
-- **Patron** : accès complet, finance, gestion utilisateurs
-- **Adjoint** : Patron temporaire avec restrictions (pas de finance, pas de
-  promotion vers Patron, pas de suppression définitive)
+- **Patron** : accès complet, finance complète (3 enveloppes), paramètres,
+  gestion utilisateurs, suppressions définitives
+- **Adjoint** (« Patron par intérim ») : opérationnel complet + dashboard
+  (sans l'enveloppe Personnel) + finance limitée (Réinvestissement +
+  Charges, jamais Personnel). Ne peut ni promouvoir vers Patron ni
+  supprimer définitivement (annulations uniquement)
 - **Production** : lots, stock, livraisons, lecture clients
 - **Livreur / Vendeur / Commercial** : tournées, livraisons, encaissements,
   création client sur le terrain
@@ -132,7 +141,7 @@ app/
   ├── (app)/                     # Routes protégées (sidebar)
   │   ├── dashboard/             # KPIs Patron + graphiques finance
   │   ├── stock/                 # Vue temps réel + lots + pertes
-  │   ├── production/            # Saisie lots avec DLUO
+  │   ├── production/            # Saisie lots avec date « à consommer avant »
   │   ├── clients/               # CRUD + tarifs négociés
   │   ├── livraisons/            # Liste + nouvelle + tournée
   │   ├── factures/              # Liste + détail + encaissements
@@ -295,6 +304,44 @@ prêt à envoyer à ton comptable, contenant :
 Format : `;` séparateur (Excel France), accents UTF-8 BOM (pas de
 caractères cassés à l'ouverture).
 
+## 🔁 Système de consigne
+
+Le Patron applique une consigne sur chaque bouteille / flacon vendu.
+Quand un client rapporte ses contenants vides, le crédit est déduit
+automatiquement de la facture en cours.
+
+### Configurer le tarif
+
+**Admin → Paramètres** (Patron uniquement). Champ « Tarif par bouteille /
+flacon (€) », **0,05 € par défaut**, modifiable à tout moment. Le nouveau
+tarif s'applique aux livraisons marquées livrées **après** la modification
+(les factures déjà émises gardent le crédit calculé avec l'ancien tarif).
+
+### Saisir la récupération
+
+Au moment de cliquer **« Marquer livrée »** sur une livraison, la modale
+de confirmation propose un champ **« Bouteilles / flacons vides récupérés »**
+(0 par défaut). Si > 0, le crédit calculé s'affiche en direct
+(`5 × 0,05 € = −0,25 €`).
+
+### Effet sur la facture
+
+La facture est générée avec :
+- `montant_ht` : total des lignes (inchangé)
+- `montant_consigne` : crédit calculé par le trigger Postgres
+- `montant_du` = `montant_ht − montant_consigne` (le **net à payer**)
+
+Le **solde** et le **statut de paiement** sont calculés sur `montant_du`
+(pas sur `montant_ht`). Une ligne « Consigne récupérée (X bouteilles) »
+apparaît :
+- Sur la fiche facture
+- Sur le PDF (juste après Total TTC)
+- Dans le corps de l'email d'envoi de la facture
+
+> **Pas de suivi par client** : on déduit simplement au coup par coup,
+> sans tenir un compteur de bouteilles en circulation. Si le besoin
+> évolue, ce sera une V2.
+
 ## 🗑️ Supprimer ou annuler une donnée
 
 Le règlement français interdit la suppression d'une **facture émise**
@@ -323,8 +370,8 @@ mais sortent des listes par défaut).
 
 | Donnée | Effet |
 |---|---|
-| **Livraison** programmée/en cours | Statut passe à `Annulée`, le stock déjà déduit reste tel quel (à compenser via un ajustement si besoin) |
-| **Facture** émise | Bouton **Annuler la facture** (Patron) sur la fiche facture. La facture est marquée ANNULÉE (filigrane rouge sur le PDF), exclue du CA et du dashboard, ses paiements sont supprimés (équivalent à un avoir global), la livraison liée passe en `Annulée`. **La facture reste consultable** pour la traçabilité légale |
+| **Livraison** programmée/en cours | Statut passe à `Annulée`. Les mouvements de stock générés par cette livraison sont **automatiquement supprimés** (RPC `annuler_livraison`) — la marchandise n'a jamais quitté l'entrepôt, le stock disponible est restauré |
+| **Facture** émise | Bouton **Annuler la facture** (Patron) sur la fiche facture. La facture est marquée ANNULÉE (filigrane rouge sur le PDF), exclue du CA et du dashboard, ses paiements sont supprimés (équivalent à un avoir global), la livraison liée passe en `Annulée` (et son stock est restauré). **La facture reste consultable** pour la traçabilité légale |
 
 Une facture annulée n'est plus modifiable et son numéro reste réservé
 (la séquence ne se réajuste pas, ce qui est l'usage légal en France).
@@ -354,20 +401,35 @@ configuration entreprise.
   helpers Supabase, logique métier (FIFO, 50/30/20) avec tests
 - ✅ **Phase 1** — Auth + Layout + Module Clients + Module Admin
   (utilisateurs, catalogue produits)
-- ✅ **Phase 2** — Stock & Production : lots avec DLUO, vue stock temps réel,
-  alertes seuil, saisie de pertes, vues SQL `stock_par_lot` / `stock_par_produit`,
-  traçabilité des ingrédients (table `lot_ingredients` + vue `lots_par_ingredient`)
+- ✅ **Phase 2** — Stock & Production : lots avec date « à consommer avant »
+  (DDM), vue stock temps réel, alertes seuil, saisie de pertes, vues SQL
+  `stock_par_lot` / `stock_par_produit`, traçabilité des ingrédients
+  (table `lot_ingredients` + vue `lots_par_ingredient`)
 - ✅ **Phase 3** — Livraisons & Facturation : trigger FIFO, facture auto,
   numérotation séquentielle, génération PDF (BL + Facture), envoi email Resend,
   multi-paiements avec dates (chèques post-datés)
 - ✅ **Phase 4** — Finance & Dashboard : dépenses avec justificatif Storage,
   KPIs CA/Dépenses/Marge, répartition 50/30/20, graphique 12 mois, top 5
   clients & produits, export CSV comptable
-- ✅ **Bonus** — Rôle Adjoint (Patron temporaire), dark mode, badges colorés,
-  sidebar sticky avec scroll interne, suffixe `(adj)` sur les Adjoints,
-  logo Bissapa intégré aux PDFs, favicon hibiscus, branding « Le Bissap
-  Artisanal · Gestion Société »
-- 🟡 **Phase 6** — Mise en production : déploiement Netlify ✅ sur
+- ✅ **Phase 5** — Annulations & corrections : suppression ciblée par entité
+  (livraisons brouillon, lots non consommés, etc.), annulation de facture
+  avec filigrane PDF, restauration automatique du stock à l'annulation
+  d'une livraison, mode reset complet (Patron, double confirm)
+- ✅ **Phase 6** — Affinage rôle Adjoint : « Patron par intérim » avec accès
+  Dashboard (sans enveloppe Personnel) + Finance limitée (Réinvestissement
+  + Charges), promotion vers Patron bloquée, policies RLS étendues sur
+  livraisons/factures/dépenses (migrations 0026 et 0027)
+- ✅ **Phase 7** — Système de consigne : tarif configurable depuis
+  Admin → Paramètres (table `parametres_entreprise` singleton), saisie au
+  moment de marquer livrée, déduction automatique sur la facture (PDF +
+  fiche + email), `montant_du = montant_ht − montant_consigne` dans la
+  vue `factures_avec_solde`
+- ✅ **Bonus** — Dark mode, badges colorés, sidebar sticky avec scroll
+  interne, suffixe `(adj)` sur les Adjoints, logo Bissapa intégré aux
+  PDFs, favicon hibiscus, branding « Le Bissap Artisanal · Gestion
+  Société », libellé réglementaire « À consommer de préférence avant le »
+  (DDM) à la place de l'ancien « DLUO »
+- 🟡 **Phase 8** — Mise en production : déploiement Netlify ✅ sur
   `https://gestion-bissap-artisanal.blowdok.fr` (sous-domaine provisoire).
   Reste à faire : domaine définitif + vérification Resend, recette client,
   formation utilisateurs.
