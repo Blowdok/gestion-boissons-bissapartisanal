@@ -56,8 +56,9 @@ export default async function LotDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { profile, supabase } = await requireRole("patron", "fabrication", "livreur");
-  const canSaisirPerte = profile.role === "patron" || profile.role === "fabrication";
+  const { profile, supabase } = await requireRole("patron", "adjoint", "fabrication", "livreur");
+  const canSaisirPerte =
+    profile.role === "patron" || profile.role === "adjoint" || profile.role === "fabrication";
   const canSupprimerLot = profile.role === "patron";
 
   const { data: lot } = await supabase
