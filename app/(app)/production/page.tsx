@@ -164,7 +164,7 @@ export default async function ProductionPage() {
               key={g.produit_id}
               className="group rounded-md border bg-background open:bg-muted/20"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 hover:bg-muted/40">
+              <summary className="flex cursor-pointer list-none flex-col gap-3 px-4 py-3 hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
                   <div className="min-w-0">
@@ -183,7 +183,7 @@ export default async function ProductionPage() {
                   </div>
                 </div>
 
-                <div className="flex shrink-0 items-center gap-4 text-sm tabular-nums">
+                <div className="flex flex-wrap items-center gap-3 text-sm tabular-nums sm:shrink-0 sm:gap-4">
                   <Stat label="Lots" value={g.lots.length} />
                   <Stat label="Produit" value={g.totalProduit} />
                   <Stat
@@ -216,8 +216,8 @@ export default async function ProductionPage() {
                 </div>
               </summary>
 
-              <div className="border-t bg-background">
-                <Table>
+              <div className="border-t bg-background overflow-x-auto">
+                <Table className="min-w-[640px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date production</TableHead>
