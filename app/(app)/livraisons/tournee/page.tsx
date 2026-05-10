@@ -31,7 +31,7 @@ export default async function TourneePage() {
     .from("livraisons")
     .select(
       `
-      id, date_prevue, statut, notes, livreur_id,
+      id, date_prevue, heure_prevue, statut, notes, livreur_id,
       clients(raison_sociale, contact, adresse, ville, code_postal, telephone),
       lignes_livraison(qte, prix_unitaire_ht)
       `,
@@ -39,6 +39,8 @@ export default async function TourneePage() {
     .eq("date_prevue", today)
     .in("statut", ["programmee", "en_cours"])
     .order("livreur_id", { ascending: false, nullsFirst: false })
+    // Trie par heure prevue (les livraisons sans heure remontent en fin)
+    .order("heure_prevue", { ascending: true, nullsFirst: false })
     .order("created_at");
 
   if (profile.role === "livreur") {
@@ -147,6 +149,7 @@ type LivraisonCard = {
   statut: string;
   notes: string | null;
   livreur_id: string | null;
+  heure_prevue: string | null;
   clients:
     | {
         raison_sociale: string;
@@ -215,9 +218,16 @@ function Liste({
                 <p className="text-sm text-muted-foreground">{c.contact}</p>
               ) : null}
             </div>
-            <Badge className={STATUT_BADGE_CLASS[l.statut as StatutLivraison]}>
-              {STATUT_LABEL[l.statut as StatutLivraison]}
-            </Badge>
+            <div className="flex flex-col items-end gap-1">
+              <Badge className={STATUT_BADGE_CLASS[l.statut as StatutLivraison]}>
+                {STATUT_LABEL[l.statut as StatutLivraison]}
+              </Badge>
+              {l.heure_prevue ? (
+                <span className="rounded-md bg-blue-100 px-2 py-0.5 text-xs font-semibold tabular-nums text-blue-900 dark:bg-blue-950/60 dark:text-blue-200">
+                  {l.heure_prevue.slice(0, 5).replace(":", "h")}
+                </span>
+              ) : null}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">

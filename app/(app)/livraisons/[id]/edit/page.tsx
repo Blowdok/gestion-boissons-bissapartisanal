@@ -18,7 +18,7 @@ export default async function EditLivraisonPage({
 
   const { data: livraison } = await supabase
     .from("livraisons")
-    .select("id, date_prevue, livreur_id, notes, statut, clients(raison_sociale)")
+    .select("id, date_prevue, heure_prevue, livreur_id, notes, statut, clients(raison_sociale)")
     .eq("id", id)
     .maybeSingle();
 
@@ -56,6 +56,7 @@ export default async function EditLivraisonPage({
         id={id}
         initial={{
           date_prevue: livraison.date_prevue,
+          heure_prevue: livraison.heure_prevue,
           livreur_id: livraison.livreur_id,
           notes: livraison.notes,
         }}

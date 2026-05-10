@@ -66,6 +66,9 @@ export function BonLivraisonPDF({ data }: { data: PdfBonLivraisonData }) {
             <Text style={pdfStyles.documentNumero}>{numeroBL}</Text>
             <Text style={pdfStyles.documentDate}>
               Date prévue : {formatDate(data.date_prevue)}
+              {data.heure_prevue
+                ? ` à ${data.heure_prevue.slice(0, 5).replace(":", "h")}`
+                : ""}
             </Text>
             {data.date_livraison ? (
               <Text style={pdfStyles.documentDate}>

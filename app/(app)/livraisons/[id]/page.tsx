@@ -55,7 +55,7 @@ export default async function LivraisonDetailPage({
     .from("livraisons")
     .select(
       `
-      id, date_prevue, date_livraison, statut, notes, livreur_id, created_at,
+      id, date_prevue, heure_prevue, date_livraison, statut, notes, livreur_id, created_at,
       clients(id, raison_sociale, contact, ville, telephone, email, conditions_paiement),
       lignes_livraison(id, qte, prix_unitaire_ht, lots_utilises, produits(id, nom, gamme, format))
       `,
@@ -118,6 +118,9 @@ export default async function LivraisonDetailPage({
         description={
           <>
             Prévue le {formatDate(livraison.date_prevue)}
+            {livraison.heure_prevue ? (
+              <> à {livraison.heure_prevue.slice(0, 5).replace(":", "h")}</>
+            ) : null}
             {livraison.date_livraison ? (
               <> · effectuée le {formatDateTime(livraison.date_livraison)}</>
             ) : null}

@@ -25,7 +25,7 @@ export async function GET(
     .from("livraisons")
     .select(
       `
-      id, date_prevue, date_livraison, client_id,
+      id, date_prevue, heure_prevue, date_livraison, client_id,
       lignes_livraison(qte, prix_unitaire_ht, lots_utilises, produits(nom, format, poids_grammes))
       `,
     )
@@ -96,6 +96,7 @@ export async function GET(
       ? `BL-${facture.numero.replace("FAC-", "")}`
       : null,
     date_prevue: livraison.date_prevue,
+    heure_prevue: livraison.heure_prevue ?? null,
     date_livraison: livraison.date_livraison,
     client,
     lignes,

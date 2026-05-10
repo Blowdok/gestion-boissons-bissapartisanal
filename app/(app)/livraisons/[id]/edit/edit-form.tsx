@@ -17,6 +17,7 @@ import { updateLivraisonMetadata, type ActionState } from "../../actions";
 
 type Initial = {
   date_prevue: string;
+  heure_prevue: string | null;
   livreur_id: string | null;
   notes: string | null;
 };
@@ -40,6 +41,10 @@ export function EditLivraisonForm({
 
   // Inputs controles : evite le warning Base UI sur les defaultValue
   const [datePrevue, setDatePrevue] = useState<string>(initial.date_prevue);
+  // L'heure vient de Postgres au format HH:MM:SS, on tronque a HH:MM pour input type="time"
+  const [heurePrevue, setHeurePrevue] = useState<string>(
+    initial.heure_prevue ? initial.heure_prevue.slice(0, 5) : "",
+  );
   const [livreurId, setLivreurId] = useState<string>(initial.livreur_id ?? "");
   const [notes, setNotes] = useState<string>(initial.notes ?? "");
 
@@ -68,6 +73,22 @@ export function EditLivraisonForm({
           />
           {fe.date_prevue ? (
             <p className="mt-1 text-xs text-destructive">{fe.date_prevue}</p>
+          ) : null}
+        </div>
+
+        <div>
+          <Label htmlFor="heure_prevue">Heure (optionnel)</Label>
+          <Input
+            id="heure_prevue"
+            name="heure_prevue"
+            type="time"
+            value={heurePrevue}
+            onChange={(e) => setHeurePrevue(e.target.value)}
+            className="mt-2"
+            disabled={pending}
+          />
+          {fe.heure_prevue ? (
+            <p className="mt-1 text-xs text-destructive">{fe.heure_prevue}</p>
           ) : null}
         </div>
 

@@ -55,6 +55,8 @@ export type PdfBonLivraisonData = {
   livraison_id: string;
   numero?: string | null;
   date_prevue: string;
+  /** Heure prevue optionnelle (HH:MM ou HH:MM:SS) */
+  heure_prevue?: string | null;
   date_livraison?: string | null;
   client: PdfClient;
   lignes: PdfLigne[];
