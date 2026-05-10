@@ -43,7 +43,7 @@ export default async function LivraisonsPage({
   let request = supabase
     .from("livraisons")
     .select(
-      "id, date_prevue, date_livraison, statut, notes, clients(raison_sociale, ville), lignes_livraison(qte, prix_unitaire_ht)",
+      "id, date_prevue, heure_prevue, date_livraison, statut, notes, clients(raison_sociale, ville), lignes_livraison(qte, prix_unitaire_ht)",
     )
     .order("date_prevue", { ascending: false })
     .order("created_at", { ascending: false })
@@ -154,6 +154,11 @@ export default async function LivraisonsPage({
                   <TableRow key={l.id}>
                     <TableCell className="text-muted-foreground">
                       {formatDate(l.date_prevue)}
+                      {l.heure_prevue ? (
+                        <span className="ml-1 text-xs">
+                          · {l.heure_prevue.slice(0, 5).replace(":", "h")}
+                        </span>
+                      ) : null}
                     </TableCell>
                     <TableCell className="font-medium">
                       <Link

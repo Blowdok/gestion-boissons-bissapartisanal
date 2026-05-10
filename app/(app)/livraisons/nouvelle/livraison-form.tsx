@@ -152,20 +152,35 @@ export function LivraisonForm({
           {fe.client_id ? <p className="mt-1 text-xs text-destructive">{fe.client_id}</p> : null}
         </div>
 
-        <div>
-          <Label htmlFor="date_prevue">Date prévue *</Label>
-          <Input
-            id="date_prevue"
-            name="date_prevue"
-            type="date"
-            required
-            defaultValue={today}
-            className="mt-2"
-            disabled={pending}
-          />
-          {fe.date_prevue ? (
-            <p className="mt-1 text-xs text-destructive">{fe.date_prevue}</p>
-          ) : null}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="date_prevue">Date prévue *</Label>
+            <Input
+              id="date_prevue"
+              name="date_prevue"
+              type="date"
+              required
+              defaultValue={today}
+              className="mt-2"
+              disabled={pending}
+            />
+            {fe.date_prevue ? (
+              <p className="mt-1 text-xs text-destructive">{fe.date_prevue}</p>
+            ) : null}
+          </div>
+          <div>
+            <Label htmlFor="heure_prevue">Heure (optionnel)</Label>
+            <Input
+              id="heure_prevue"
+              name="heure_prevue"
+              type="time"
+              className="mt-2"
+              disabled={pending}
+            />
+            {fe.heure_prevue ? (
+              <p className="mt-1 text-xs text-destructive">{fe.heure_prevue}</p>
+            ) : null}
+          </div>
         </div>
 
         <div>

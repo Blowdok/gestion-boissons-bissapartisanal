@@ -61,6 +61,12 @@ export const ligneSchema = z.object({
 export const livraisonSchema = z.object({
   client_id: z.string().uuid("Client requis."),
   date_prevue: z.string().min(1, "Date requise."),
+  // Format HH:MM (input type="time" HTML). Optionnel.
+  heure_prevue: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/, "Heure invalide (format HH:MM).")
+    .optional()
+    .or(z.literal("")),
   livreur_id: z.string().uuid().optional().or(z.literal("")),
   notes: z.string().trim().max(500).optional().or(z.literal("")),
   // Les lignes sont serialisees en JSON dans un champ cache

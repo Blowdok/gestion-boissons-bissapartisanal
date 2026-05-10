@@ -12,6 +12,11 @@ export type SupprimerLivraisonResult =
 
 const editMetadataSchema = z.object({
   date_prevue: z.string().min(1, "Date requise."),
+  heure_prevue: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/, "Heure invalide (format HH:MM).")
+    .optional()
+    .or(z.literal("")),
   livreur_id: z.string().uuid().optional().or(z.literal("")),
   notes: z.string().trim().max(500).optional().or(z.literal("")),
 });
@@ -49,7 +54,7 @@ export async function createLivraison(
     return { fieldErrors: { lignes: "Lignes invalides." } };
   }
 
-  const { client_id, date_prevue, livreur_id, notes } = parsed.data;
+  const { client_id, date_prevue, heure_prevue, livreur_id, notes } = parsed.data;
 
   // 1. Cree la livraison
   const { data: livraison, error: errLiv } = await supabase
@@ -57,6 +62,7 @@ export async function createLivraison(
     .insert({
       client_id,
       date_prevue,
+      heure_prevue: heure_prevue || null,
       livreur_id: livreur_id || null,
       notes: notes || null,
       created_by: user.id,
@@ -100,11 +106,12 @@ export async function updateLivraisonMetadata(
     return { fieldErrors: fieldErrors(parsed.error) };
   }
 
-  const { date_prevue, livreur_id, notes } = parsed.data;
+  const { date_prevue, heure_prevue, livreur_id, notes } = parsed.data;
   const { error } = await supabase
     .from("livraisons")
     .update({
       date_prevue,
+      heure_prevue: heure_prevue || null,
       livreur_id: livreur_id || null,
       notes: notes || null,
     })
