@@ -26,23 +26,44 @@ export async function GET(
     .select(
       `
       id, date_prevue, date_livraison, client_id,
-      clients(raison_sociale, contact, adresse, ville, code_postal, siret, email, telephone, conditions_paiement),
       lignes_livraison(qte, prix_unitaire_ht, lots_utilises, produits(nom, format, poids_grammes))
       `,
     )
     .eq("id", id)
     .maybeSingle();
 
-  if (error || !livraison) {
+  if (error) {
+    console.error("[pdf bon-livraison] erreur livraison:", error);
+    return NextResponse.json(
+      { error: `Erreur livraison: ${error.message}` },
+      { status: 500 },
+    );
+  }
+  if (!livraison) {
     return NextResponse.json({ error: "Livraison introuvable" }, { status: 404 });
   }
 
-  const client = Array.isArray(livraison.clients)
-    ? livraison.clients[0]
-    : livraison.clients;
+  // Charge le client en requete separee : evite que la RLS sur clients
+  // fasse echouer silencieusement la jointure et qu'on remonte un 404
+  // trompeur "Client introuvable" alors que la livraison existe bien.
+  const { data: client, error: errClient } = await supabase
+    .from("clients")
+    .select(
+      "raison_sociale, contact, adresse, ville, code_postal, siret, email, telephone, conditions_paiement",
+    )
+    .eq("id", livraison.client_id)
+    .maybeSingle();
 
-  if (!client) {
-    return NextResponse.json({ error: "Client introuvable" }, { status: 404 });
+  if (errClient || !client) {
+    console.error(
+      "[pdf bon-livraison] erreur client",
+      livraison.client_id,
+      errClient,
+    );
+    return NextResponse.json(
+      { error: "Client introuvable pour cette livraison." },
+      { status: 404 },
+    );
   }
 
   // Recupere le numero de facture si livree
