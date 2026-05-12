@@ -1,6 +1,6 @@
 import "server-only";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { getResend, RESEND_FROM } from "./resend";
+import { getResend, RESEND_FROM, RESEND_REPLY_TO } from "./resend";
 import { FacturePDF } from "@/lib/pdf/facture";
 import { ENTREPRISE } from "@/lib/config/entreprise";
 import { formatEUR } from "@/lib/utils/format";
@@ -78,7 +78,7 @@ SIRET ${ENTREPRISE.siret} · ${ENTREPRISE.email} · ${ENTREPRISE.telephone_mobil
     const { data: response, error } = await resend.emails.send({
       from: RESEND_FROM,
       to: [data.client.email],
-      replyTo: ENTREPRISE.email,
+      replyTo: RESEND_REPLY_TO ?? ENTREPRISE.email,
       subject,
       html,
       text,
