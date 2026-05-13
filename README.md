@@ -100,11 +100,15 @@ L'application est disponible sur http://localhost:3000.
 
 ### Variables optionnelles
 
-| Variable                   | Description                                                      |
-| -------------------------- | ---------------------------------------------------------------- |
-| `RESEND_API_KEY`           | Clé API Resend pour l'envoi des factures par email               |
-| `RESEND_FROM`              | Adresse expéditeur (ex: `Le Bissap Artisanal <facture@xxx>`)     |
-| `NEXT_PUBLIC_ENTREPRISE_*` | Surcharges des infos entreprise (cf. `lib/config/entreprise.ts`) |
+| Variable                          | Description                                                                                                                                       |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RESEND_API_KEY`                  | Clé API Resend pour l'envoi des factures par email                                                                                                |
+| `RESEND_FROM`                     | Adresse expéditeur (ex: `Le Bissap Artisanal <facture@societe.lebissapartisanal.click>`). Doit utiliser un domaine vérifié dans Resend            |
+| `RESEND_REPLY_TO`                 | Adresse Reply-To distincte du `from` (ex: `facture@lebissapartisanal.click`). Utile si l'expéditeur est sur un sous-domaine technique non réceptif et qu'on veut que les réponses soient redirigées vers une vraie boîte (Gmail) via un service de forwarding (ImprovMX, Cloudflare Email Routing, etc.) |
+| `NEXT_PUBLIC_ENTREPRISE_*`        | Surcharges des infos entreprise (cf. `lib/config/entreprise.ts`)                                                                                  |
+| `NEXT_PUBLIC_ENTREPRISE_IBAN`     | IBAN affiché sur les factures PDF (ex: `FR76 1695 8000 0124 4993 1951 171`)                                                                       |
+| `NEXT_PUBLIC_ENTREPRISE_BIC`      | BIC/SWIFT (ex: `QNTOFRP1XXX`)                                                                                                                     |
+| `NEXT_PUBLIC_ENTREPRISE_BANQUE`   | Nom de la banque (ex: `Qonto`)                                                                                                                    |
 
 ### Initialisation BDD Supabase
 
@@ -450,10 +454,15 @@ configuration entreprise.
   PDFs, favicon hibiscus, branding « Le Bissap Artisanal · Gestion
   Société », libellé réglementaire « À consommer de préférence avant le »
   (DDM) à la place de l'ancien « DLUO »
-- 🟡 **Phase 8** — Mise en production : déploiement Netlify ✅ sur
-  `https://gestion-bissap-artisanal.blowdok.fr` (sous-domaine provisoire).
-  Reste à faire : domaine définitif + vérification Resend, recette client,
-  formation utilisateurs.
+- 🟢 **Phase 8** — Mise en production : déploiement Netlify ✅ sur le
+  custom domain `https://app.lebissapartisanal.click` (Hostinger →
+  Netlify via CNAME + HTTPS Let's Encrypt). Pipeline email complet :
+  Resend vérifié sur le sous-domaine d'envoi `societe.lebissapartisanal.click`,
+  redirection des réponses via ImprovMX vers `lebissapartisanal@gmail.com`,
+  flow de reset mot de passe corrigé (route `/auth/callback` qui échange
+  le code PKCE contre une session). Compte Patron d'Emmanuel créé.
+  Reste à faire : recette client (test envoi facture end-to-end), formation
+  utilisateurs, désengagement de l'infrastructure dev.
 
 ## Comptes de test (dev)
 
@@ -556,15 +565,49 @@ configuration entreprise.
 2. **API Keys → Create API Key** → nom : `bissapa-prod` → permission
    **Sending access** → copier la clé (commence par `re_…`)
 3. **Domains → Add Domain** → entrer le nom de domaine du Patron (ex:
-   `bissapa.fr`)
-4. Ajouter les **enregistrements DNS** affichés (SPF + DKIM + MX optionnel)
-   chez le registrar
+   `lebissapartisanal.click`)
+   - ⚠️ **Resend impose désormais un sous-domaine d'envoi obligatoire**
+     (ex: `societe`, `send`, etc.) pour isoler la réputation d'envoi du
+     domaine racine. Choisir un nom court et professionnel (les emails
+     partiront depuis `xxx@<sous-domaine>.<domaine-racine>`)
+4. Ajouter les **enregistrements DNS** affichés (TXT SPF + TXT DKIM + MX
+   bounce sur le sous-domaine choisi) chez le registrar (Hostinger, OVH,
+   Cloudflare, etc.)
 5. Cliquer **Verify** une fois la propagation DNS faite (qq minutes à 1h)
 6. Une fois vérifié, ajouter dans Netlify :
    - `RESEND_API_KEY=re_xxxxxxxxxxxx`
-   - `RESEND_FROM=Le Bissap Artisanal <facture@bissapa.fr>`
+   - `RESEND_FROM=Le Bissap Artisanal <facture@societe.lebissapartisanal.click>`
+   - `RESEND_REPLY_TO=facture@lebissapartisanal.click` (optionnel — voir
+     section "Redirection des réponses email" ci-dessous)
 7. **Clear cache and deploy site** → tester l'envoi d'une facture depuis
    l'app pour vérifier la réception
+
+### C.bis Redirection des réponses email (ImprovMX — optionnel mais recommandé)
+
+Puisque Resend impose d'envoyer depuis un sous-domaine technique
+(`societe.lebissapartisanal.click`), les clients qui répondent
+naturellement à une facture verraient leurs emails atterrir sur une
+adresse non lisible. Solution : configurer un service de redirection
+gratuit (ImprovMX) sur le domaine racine pour rediriger
+`facture@lebissapartisanal.click` vers la vraie boîte mail du Patron.
+
+1. Créer un compte gratuit sur https://improvmx.com
+2. **Add domain** → saisir `lebissapartisanal.click` (le domaine racine)
+3. Ajouter les 2 enregistrements MX et le TXT SPF fournis par ImprovMX
+   dans la zone DNS du registrar :
+   - `MX  @  10  mx1.improvmx.com`
+   - `MX  @  20  mx2.improvmx.com`
+   - `TXT @     v=spf1 include:spf.improvmx.com ~all`
+4. Une fois le domaine "Active" dans ImprovMX, créer un alias :
+   - Alias : `facture` (ou `*` pour catch-all)
+   - Forward to : `lebissapartisanal@gmail.com`
+5. Tester en envoyant un email à `facture@lebissapartisanal.click`
+   depuis une boîte externe → doit arriver sur la Gmail du Patron
+
+Côté code, la variable `RESEND_REPLY_TO=facture@lebissapartisanal.click`
+indique au header Reply-To des factures envoyées. Les clients qui
+répondent voient une adresse pro et leur réponse arrive bien dans la
+Gmail du Patron via ImprovMX.
 
 ### D. (Optionnel) Compte GitHub
 
@@ -661,12 +704,17 @@ produits est conservé.
 Tant que le domaine n'est pas vérifié chez Resend, l'envoi reste en mode
 test → seuls les emails vers `blowdok974@gmail.com` partent.
 
-Dès qu'Emmanuel fournit son nom de domaine définitif (ex: `bissapa.fr`) :
+Dès qu'Emmanuel fournit son nom de domaine définitif (ex: `lebissapartisanal.click`) :
 
-1. Resend Dashboard → **Domains → Add Domain** → suivre les DNS (SPF + DKIM)
-2. Une fois vérifié, mettre à jour la variable Netlify
-   `RESEND_FROM=Le Bissap Artisanal <facture@bissapa.fr>`
-3. **Clear cache and deploy site**
+1. Resend Dashboard → **Domains → Add Domain** → saisir le domaine + choisir
+   un **sous-domaine d'envoi** obligatoire (ex: `societe`) — Resend l'impose
+   désormais pour isoler la réputation d'envoi
+2. Suivre les DNS demandés (TXT SPF + TXT DKIM + MX bounce sur le sous-domaine)
+3. Une fois vérifié, mettre à jour les variables Netlify :
+   - `RESEND_FROM=Le Bissap Artisanal <facture@societe.lebissapartisanal.click>`
+   - `RESEND_REPLY_TO=facture@lebissapartisanal.click` (optionnel — si
+     redirection ImprovMX configurée, cf. section C.bis)
+4. **Clear cache and deploy site**
 
 ### 7. Vérifications finales avant remise au client
 
