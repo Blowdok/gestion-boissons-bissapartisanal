@@ -23,7 +23,21 @@ export function getResend(): Resend | null {
  * - Par defaut : 'onboarding@resend.dev' (domaine de test Resend, fonctionne
  *   sans configuration DNS — utile pour demarrer)
  * - En prod : surcharger via RESEND_FROM avec une adresse d'un domaine verifie
- *   dans Resend (ex : 'facture@lebissapartisanal.com')
+ *   dans Resend (ex : 'Le Bissap Artisanal <facture@societe.lebissapartisanal.click>')
  */
 export const RESEND_FROM =
   process.env.RESEND_FROM ?? "Le Bissap Artisanal <onboarding@resend.dev>";
+
+/**
+ * Adresse de reponse (Reply-To) des emails transactionnels.
+ *
+ * Permet de decorreler le domaine technique d'envoi (sous-domaine verifie chez
+ * Resend, ex: societe.lebissapartisanal.click) de l'adresse de contact lisible
+ * sur le domaine racine. Quand un client clique "Repondre", la reponse part
+ * vers cette adresse — qui peut etre rediree via ImprovMX ou un service
+ * equivalent vers une vraie boite mail (ex: Gmail).
+ *
+ * - Si non defini : fallback sur RESEND_FROM (comportement par defaut Resend).
+ * - En prod : RESEND_REPLY_TO=facture@lebissapartisanal.click
+ */
+export const RESEND_REPLY_TO = process.env.RESEND_REPLY_TO;

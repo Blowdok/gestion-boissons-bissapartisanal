@@ -56,6 +56,9 @@ export function BonLivraisonPDF({ data }: { data: PdfBonLivraisonData }) {
                 {ENTREPRISE.telephone_fixe}
               </Text>
             ) : null}
+            {ENTREPRISE.email ? (
+              <Text style={pdfStyles.emetteurLine}>{ENTREPRISE.email}</Text>
+            ) : null}
             <Text style={[pdfStyles.emetteurLine, { marginTop: 4 }]}>
               SIRET : {ENTREPRISE.siret}
             </Text>

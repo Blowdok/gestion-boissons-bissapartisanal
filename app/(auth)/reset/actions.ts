@@ -17,8 +17,11 @@ export async function requestReset(
   const supabase = await createClient();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
+  // Le lien email pointe sur /auth/callback qui echange le code PKCE
+  // contre une session, puis redirige sur /reset/confirm avec une session
+  // active permettant l'appel a updateUser({ password }).
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${appUrl}/reset/confirm`,
+    redirectTo: `${appUrl}/auth/callback?next=/reset/confirm`,
   });
 
   // On retourne toujours ok=true pour ne pas reveler si l'email existe (anti-enum).
