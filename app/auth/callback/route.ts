@@ -1,50 +1,69 @@
 import { NextResponse, type NextRequest } from "next/server";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Callback Supabase Auth (PKCE).
+ * Callback Supabase Auth — gere les deux formats de liens email :
  *
- * Echange le code retourne par Supabase (apres clic sur un lien email de
- * confirmation, reset password, magic link) contre une session valide
- * stockee dans les cookies, puis redirige vers la page suivante.
+ * Format 1 (PKCE)  : /auth/callback?code=xxx&next=/...
+ *   - Utilise exchangeCodeForSession() pour creer la session
  *
- * Lien email typique :
- *   https://<projet>.supabase.co/auth/v1/verify
- *     ?token=...&type=recovery
- *     &redirect_to=https://app.exemple.com/auth/callback?next=/reset/confirm
+ * Format 2 (OTP)   : /auth/callback?token_hash=xxx&type=recovery&next=/...
+ *   - Utilise verifyOtp() pour valider et creer la session
  *
- * Apres verification du token Supabase, redirection vers :
- *   https://app.exemple.com/auth/callback?code=xxx&next=/reset/confirm
- *
- * Cette route :
- *   1. Recupere le code dans searchParams
- *   2. L'echange contre une session (exchangeCodeForSession)
- *   3. Redirige vers `next` (defaut "/")
- *
- * Sans cet echange, l'utilisateur arrive sur la page suivante sans session
- * et toute action authentifiee (updateUser, etc.) echoue.
+ * Sans cette etape, la page suivante n'a pas de session, et
+ * updateUser({ password }) echoue avec "Lien expire ou invalide".
  */
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+
+  // Sur Netlify, request.url contient parfois l'URL interne du deploiement
+  // (hash--site.netlify.app) au lieu du custom domain. On force l'origin
+  // depuis NEXT_PUBLIC_APP_URL pour que les redirections restent toujours
+  // sur l'URL canonique et que les cookies de session se posent au bon
+  // endroit.
+  const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
+
   const code = searchParams.get("code");
+  const tokenHash = searchParams.get("token_hash");
+  const type = searchParams.get("type") as EmailOtpType | null;
   const next = searchParams.get("next") ?? "/";
 
-  if (!code) {
-    return NextResponse.redirect(
-      `${origin}/login?error=Lien%20invalide`,
-    );
-  }
+  // Eviter les open-redirects : seulement des chemins relatifs internes.
+  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-  if (error) {
-    return NextResponse.redirect(
-      `${origin}/login?error=Lien%20expire%20ou%20invalide`,
-    );
+  // Format PKCE : ?code=
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      console.error("[auth/callback] exchangeCodeForSession:", error.message);
+      return NextResponse.redirect(
+        `${origin}/login?error=${encodeURIComponent(error.message)}`,
+      );
+    }
+    return NextResponse.redirect(`${origin}${safeNext}`);
   }
 
-  // Eviter les open-redirects : on n'accepte que des chemins relatifs.
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
-  return NextResponse.redirect(`${origin}${safeNext}`);
+  // Format OTP : ?token_hash=&type=
+  if (tokenHash && type) {
+    const { error } = await supabase.auth.verifyOtp({
+      type,
+      token_hash: tokenHash,
+    });
+    if (error) {
+      console.error("[auth/callback] verifyOtp:", error.message);
+      return NextResponse.redirect(
+        `${origin}/login?error=${encodeURIComponent(error.message)}`,
+      );
+    }
+    return NextResponse.redirect(`${origin}${safeNext}`);
+  }
+
+  // Aucun parametre reconnu : lien invalide
+  console.error("[auth/callback] aucun code/token_hash dans l'URL");
+  return NextResponse.redirect(
+    `${origin}/login?error=${encodeURIComponent("Lien invalide")}`,
+  );
 }
